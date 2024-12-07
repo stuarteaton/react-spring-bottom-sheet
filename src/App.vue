@@ -7,79 +7,96 @@
     <div class="sheet" ref="sheet">
       <div class="sheet-handle" ref="sheetHandle"/>
 
-      <div class="sheet-content" ref="sheetContent">
-        <div>
-          <button>test</button>
+      <div class="sheet-scroll">
+        <div class="sheet-content" ref="sheetContent">
+          <div>
+            <button>test</button>
+          </div>
+          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
+            award-winning fireworks and seasonal special events.</p>
+          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
+            award-winning fireworks and seasonal special events.</p>
+          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
+            award-winning fireworks and seasonal special events.</p>
+          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
+            award-winning fireworks and seasonal special events.</p>
+          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
+            award-winning fireworks and seasonal special events.</p>
+          <details>
+            <summary>Epcot Center</summary>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+            <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international
+              pavilions,
+              award-winning fireworks and seasonal special events.</p>
+          </details>
         </div>
-        <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-          award-winning fireworks and seasonal special events.</p>
-        <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-          award-winning fireworks and seasonal special events.</p>
-        <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-          award-winning fireworks and seasonal special events.</p>
-        <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-          award-winning fireworks and seasonal special events.</p>
-        <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-          award-winning fireworks and seasonal special events.</p>
-        <details>
-          <summary>Epcot Center</summary>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-          <p>Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions,
-            award-winning fireworks and seasonal special events.</p>
-        </details>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useElementSize, useWindowSize} from '@vueuse/core'
-import {useDrag, useGesture} from '@vueuse/gesture'
-import {useElementTransform} from '@vueuse/motion'
+import {useGesture} from '@vueuse/gesture'
+import {useElementStyle, useElementTransform} from '@vueuse/motion'
 
 const sheet = ref<HTMLElement | null>(null);
 const sheetHandle = ref<HTMLElement | null>(null);
 const sheetContent = ref<HTMLElement | null>(null);
-const isSheetContentScrolling = ref(false)
 
 const overlay = ref<HTMLElement | null>(null);
 const showOverlay = ref<boolean>(false);
 
+const {height: windowHeight} = useWindowSize()
 const {height: sheetHeight} = useElementSize(sheet)
+const {height: sheetContentHeight} = useElementSize(sheetContent)
+const {height: sheetHandleHeight} = useElementSize(sheetHandle)
+const minHeight = computed(() => {
+  return sheetContentHeight.value + sheetHandleHeight.value
+})
 
+const {style} = useElementStyle(sheet)
 const {transform} = useElementTransform(sheet)
 
-const initialBreakpoint = 0.5;
 const currentBreakpointIndex = ref(0);
-const breakpoints = new Set([0.25, 0.5, 1]);
+const defaultBreakpoint = ref(/*windowHeight.value * 0.5*/ null);
+const breakpoints = ref<Set<number>>(new Set([windowHeight.value * 0.25, windowHeight.value * 0.5, windowHeight.value * 0.75]));
 const sortedBreakpoints = computed(() => {
-  return [...breakpoints].sort((a, b) => a - b)
+  return [...breakpoints.value].sort((a, b) => a - b)
 });
 
+const height = ref(sheetHeight)
 const translateY = ref(0)
-const closestBreakpoint = ref(0)
 
 const canSwiperClose = ref(true)
 const canOverlayClose = ref(true)
-const canDragContent = ref(true)
 
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -91,8 +108,8 @@ const open = () => {
   if (!sheet.value) return
 
   sheet.value.style.transition = 'all 0.3s ease-in-out'
-  translateY.value = (initialBreakpoint * sheetHeight.value - sheetHeight.value) * -1;
-  transform.translateY = translateY.value
+  style.height = defaultBreakpoint.value ? defaultBreakpoint.value : sortedBreakpoints.value[0];
+  transform.translateY = 0;
   showOverlay.value = true;
 
   window.addEventListener('keydown', handleEscapeKey)
@@ -102,32 +119,24 @@ const close = () => {
   if (!sheet.value) return
 
   sheet.value.style.transition = 'all 0.3s ease-in-out'
-  translateY.value = sheetHeight.value;
-  transform.translateY = translateY.value
+  transform.translateY = sheetHeight.value;
   showOverlay.value = false;
 
   window.removeEventListener('keydown', handleEscapeKey)
 }
+
 const overlayClick = () => {
   if (canOverlayClose.value) {
     close()
   }
 }
 
-function snapToBreakpoint() {
-  const breakpointToSheet = sortedBreakpoints.value.map(breakpoint => (breakpoint * sheetHeight.value - sheetHeight.value) * -1)
-
-  closestBreakpoint.value = breakpointToSheet.reduce((prev, curr) => {
-    return Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev;
+function findClosestIndexBreakpoint() {
+  const closestBreakpoint = sortedBreakpoints.value.reduce((previous: number, current: number) => {
+    return Math.abs(current - height.value) < Math.abs(previous - height.value) ? current : previous;
   });
 
-  sheet.value!.style.transition = 'all 0.3s ease-in-out'
-
-  translateY.value = closestBreakpoint.value
-
-  if (canSwiperClose.value && translateY.value === sheetHeight.value) {
-    close();
-  }
+  currentBreakpointIndex.value = sortedBreakpoints.value.indexOf(closestBreakpoint);
 }
 
 useGesture(
@@ -135,20 +144,43 @@ useGesture(
       onDrag: ({delta}) => {
         if (!sheet.value) return
 
-        translateY.value += delta[1];
-        if (translateY.value < 0) {
-          translateY.value = 0
+        height.value -= delta[1];
+        if (height.value > sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
+          height.value = sortedBreakpoints.value[sortedBreakpoints.value.length - 1];
         }
-        if (translateY.value < (sortedBreakpoints.value[sortedBreakpoints.value.length - 1] * sheetHeight.value - sheetHeight.value) * -1) {
-          translateY.value = (sortedBreakpoints.value[sortedBreakpoints.value.length - 1] * sheetHeight.value - sheetHeight.value) * -1
+        if (height.value < sortedBreakpoints.value[0]) {
+          height.value = sortedBreakpoints.value[0];
+
+          translateY.value += delta[1];
+          transform.translateY = translateY.value;
+
+          if (translateY.value > sortedBreakpoints.value[0]) {
+            translateY.value = sortedBreakpoints.value[0];
+          }
         }
 
         sheet.value.style.transition = ''
-        transform.translateY = translateY.value
+        style.height = height.value
       },
       onDragEnd: () => {
-        snapToBreakpoint();
-        transform.translateY = translateY.value
+        if (!sheet.value) return
+
+        findClosestIndexBreakpoint();
+
+        translateY.value = canSwiperClose.value
+            ? [0, height.value].reduce((prev, curr) => {
+              return (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev);
+            }) : 0
+
+        transform.translateY = translateY.value;
+
+        if (translateY.value === height.value) {
+          translateY.value = 0;
+          close();
+        }
+
+        sheet.value.style.transition = 'all 0.3s ease-in-out'
+        style.height = sortedBreakpoints.value[currentBreakpointIndex.value];
       },
     },
     {
@@ -156,47 +188,9 @@ useGesture(
     }
 )
 
-if (canDragContent.value) {
-  useGesture(
-      {
-        onDrag: ({delta}) => {
-          if (!sheet.value) return
-
-          translateY.value += delta[1];
-          if (translateY.value < 0) {
-            translateY.value = 0
-          }
-          if (translateY.value < (sortedBreakpoints.value[sortedBreakpoints.value.length - 1] * sheetHeight.value - sheetHeight.value) * -1) {
-            translateY.value = (sortedBreakpoints.value[sortedBreakpoints.value.length - 1] * sheetHeight.value - sheetHeight.value) * -1
-          }
-
-          sheet.value.style.transition = ''
-          transform.translateY = translateY.value
-        },
-        onDragEnd: () => {
-          snapToBreakpoint();
-          transform.translateY = translateY.value
-        },
-      },
-      {
-        domTarget: sheetContent,
-        drag: {
-          filterTaps: true,
-          delay: 300,
-        }
-      }
-  )
-}
-
-watch(
-    sheetHeight,
-    async () => {
-      snapToBreakpoint()
-    }
-)
-
 onMounted(() => {
-  transform.translateY = sheetHeight.value;
+  style.height = defaultBreakpoint.value ? defaultBreakpoint.value : minHeight.value;
+  transform.translateY = defaultBreakpoint.value ? defaultBreakpoint.value : minHeight.value;
 })
 </script>
 
@@ -253,7 +247,7 @@ body {
   user-select: none;
 }
 
-.sheet-content {
+.sheet-scroll {
   overflow-y: auto;
 }
 
