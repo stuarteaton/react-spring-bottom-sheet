@@ -1,34 +1,37 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from 'vue'
 import {useElementSize, useWindowSize} from '@vueuse/core'
-import {useGesture} from '@vueuse/gesture'
+import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture'
 import {useElementStyle, useElementTransform} from '@vueuse/motion'
 
 interface IProps {
   snapPoints: number[]
   defaultBreakpoint?: number
-  canSwiperClose?: boolean
+  canSwipeClose?: boolean
   canOverlayClose?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), {
-  canSwiperClose: true,
+  canSwipeClose: true,
   canOverlayClose: true
 })
 
+const maxHeight = defineModel('maxHeight')
+const minHeight = defineModel('minHeight')
+
 const sheet = ref<HTMLElement | null>(null);
 const sheetHandle = ref<HTMLElement | null>(null);
-const sheetContent = ref<HTMLElement | null>(null);
+const sheetContentWrapper = ref<HTMLElement | null>(null);
 
 const overlay = ref<HTMLElement | null>(null);
 const showOverlay = ref<boolean>(false);
 
-const {height: maxHeight} = useWindowSize()
+const {height: windowHeight} = useWindowSize()
 const {height: sheetHeight} = useElementSize(sheet)
-const {height: sheetContentHeight} = useElementSize(sheetContent)
+const {height: sheetContentWrapperHeight} = useElementSize(sheetContentWrapper)
 const {height: sheetHandleHeight} = useElementSize(sheetHandle)
-const minHeight = computed(() => {
-  return sheetContentHeight.value + sheetHandleHeight.value
+const minHeightComputed = computed(() => {
+  return sheetContentWrapperHeight.value + sheetHandleHeight.value
 })
 
 const {style} = useElementStyle(sheet)
@@ -39,7 +42,7 @@ const sortedBreakpoints = computed(() => {
   return [...props.snapPoints].sort((a, b) => a - b)
 });
 
-const height = ref(sheetHeight)
+const height = ref()
 const translateY = ref(0)
 
 const handleEscapeKey = (e: KeyboardEvent) => {
@@ -52,6 +55,7 @@ const open = () => {
   if (!sheet.value) return
 
   sheet.value.style.transition = 'all 0.3s ease-in-out'
+  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : sortedBreakpoints.value[0];
   style.height = props.defaultBreakpoint ? props.defaultBreakpoint : sortedBreakpoints.value[0];
   transform.translateY = 0;
   showOverlay.value = true;
@@ -86,39 +90,48 @@ function findClosestIndexBreakpoint() {
 useGesture(
     {
       onDrag: ({delta}) => {
-        if (!sheet.value) return
+        if (!sheet.value) return;
 
-        height.value -= delta[1];
-        if (height.value > sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
-          height.value = sortedBreakpoints.value[sortedBreakpoints.value.length - 1];
+
+        if (translateY.value === 0) {
+          height.value -= delta[1];
         }
+
         if (height.value <= sortedBreakpoints.value[0]) {
           height.value = sortedBreakpoints.value[0];
 
           translateY.value += delta[1];
-          transform.translateY = translateY.value;
 
-          if (translateY.value > sortedBreakpoints.value[0]) {
+          if (translateY.value >= sortedBreakpoints.value[0]) {
             translateY.value = sortedBreakpoints.value[0];
           }
           if (translateY.value <= 0) {
             translateY.value = 0;
           }
+
+          if (props.canSwipeClose) {
+            transform.translateY = translateY.value;
+          } else {
+            transform.translateY = rubberbandIfOutOfBounds(translateY.value, - sheetHeight.value, 0, 0.5);
+          }
         }
 
-        sheet.value.style.transition = ''
-        style.height = height.value
+        sheet.value.style.transition = '';
+        style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
       },
       onDragEnd: () => {
-        if (!sheet.value) return
+        if (!sheet.value) return;
 
         findClosestIndexBreakpoint();
 
-        translateY.value = props.canSwiperClose
-            ? [0, height.value].reduce((prev, curr) => {
-              return (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev);
-            }) : 0
 
+        translateY.value = props.canSwipeClose
+            ? [0, height.value].reduce((prev, curr) => {
+              return Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value)
+                  ? curr
+                  : prev
+            })
+            : 0;
         transform.translateY = translateY.value;
 
         if (translateY.value === height.value) {
@@ -126,28 +139,32 @@ useGesture(
           close();
         }
 
-        sheet.value.style.transition = 'all 0.3s ease-in-out'
+        sheet.value.style.transition = 'all 0.3s ease-in-out';
+        height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
         style.height = sortedBreakpoints.value[currentBreakpointIndex.value];
       },
     },
     {
       domTarget: sheetHandle,
       drag: {
-        // bounds: {
-        //   top: 0,
-        //   bottom: 3000
-        // },
-        // rubberband: true,
-      }
+        preventWindowScrollY: true,
+        filterTaps: false,
+      },
     }
-)
+);
+
 
 onMounted(() => {
-  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : minHeight.value;
-  transform.translateY = props.defaultBreakpoint ? props.defaultBreakpoint : minHeight.value;
+  maxHeight.value = windowHeight.value;
+  minHeight.value = minHeightComputed.value;
+
+  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
+  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
+
+  transform.translateY = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
 })
 
-defineExpose({open, close, maxHeight, minHeight})
+defineExpose({open, close})
 </script>
 
 <template>
@@ -160,8 +177,10 @@ defineExpose({open, close, maxHeight, minHeight})
         <div class="sheet-handle" ref="sheetHandle"/>
 
         <div class="sheet-scroll">
-          <div class="sheet-content" ref="sheetContent">
-            <slot></slot>
+          <div ref="sheetContentWrapper">
+            <div class="sheet-content">
+              <slot></slot>
+            </div>
           </div>
         </div>
       </div>
@@ -217,6 +236,7 @@ defineExpose({open, close, maxHeight, minHeight})
 }
 
 .sheet-content {
+  display: grid;
   user-select: none;
 }
 
