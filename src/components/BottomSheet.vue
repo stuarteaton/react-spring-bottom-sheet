@@ -23,6 +23,7 @@ const minHeight = defineModel('minHeight')
 
 const sheet = ref<HTMLElement | null>(null);
 const sheetHeader = ref<HTMLElement | null>(null);
+const sheetFooter = ref<HTMLElement | null>(null);
 const sheetContentWrapper = ref<HTMLElement | null>(null);
 
 const overlay = ref<HTMLElement | null>(null);
@@ -31,9 +32,12 @@ const showSheet = ref<boolean>(false);
 const {height: windowHeight} = useWindowSize()
 const {height: sheetHeight} = useElementSize(sheet)
 const {height: sheetContentWrapperHeight} = useElementSize(sheetContentWrapper)
-const {height: sheetHandleHeight} = useElementSize(sheetHeader)
+
 const minHeightComputed = computed(() => {
-  return sheetContentWrapperHeight.value + sheetHandleHeight.value
+  // use getBoundingClientRect for precise heights
+  return sheetContentWrapperHeight.value
+      + Math.ceil(sheetHeader.value!.getBoundingClientRect().height)
+      + Math.ceil(sheetFooter.value!.getBoundingClientRect().height);
 })
 
 const {style} = useElementStyle(sheet)
@@ -227,10 +231,11 @@ onMounted(() => {
   maxHeight.value = windowHeight.value;
   minHeight.value = minHeightComputed.value;
 
-  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
-  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
+  // should not use minHeight.value in same function as it probably takes one tick to update
+  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
+  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
 
-  transform.translateY = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeight.value);
+  transform.translateY = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
 })
 
 defineExpose({open, close})
@@ -255,7 +260,7 @@ defineExpose({open, close})
           </div>
         </div>
 
-        <div class="sheet-footer">
+        <div class="sheet-footer" ref="sheetFooter">
           <slot name="footer"></slot>
         </div>
       </div>
@@ -313,12 +318,7 @@ defineExpose({open, close})
   user-select: none;
   padding: 20px 16px 8px 16px;
   flex-shrink: 0;
-  box-shadow: 0 1px 0 rgba(46, 59, 66, calc(1 * .125));
-}
-
-.sheet-header:empty {
-  padding: 12px 16px 8px 16px;
-  box-shadow: none;
+  box-shadow: 0 1px 0 rgba(46, 59, 66, 0.125);
 }
 
 .sheet-header:before {
@@ -335,16 +335,16 @@ defineExpose({open, close})
 }
 
 .sheet-footer {
+  flex-shrink: 0;
+  flex-grow: 0;
+  user-select: none;
   padding: 16px;
   box-shadow: 0 -1px 0 rgba(46, 59, 66, 0.125), 0 2px 0 #fff;
 }
 
-.sheet-footer:empty {
-  display: none;
-}
-
 .sheet-scroll {
   overflow-y: auto;
+  flex-grow: 1;
 }
 
 .sheet-content {
@@ -358,9 +358,30 @@ defineExpose({open, close})
     background-color: #242424;
   }
 
+  .sheet-header {
+    user-select: none;
+    padding: 20px 16px 8px 16px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
   .sheet-header:before {
     background-color: rgba(255, 255, 255, 0.38);
   }
+
+  .sheet-footer {
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.12), 0 2px 0 #fff;
+  }
+}
+
+
+.sheet-header:empty {
+  padding: 12px 16px 8px 16px;
+  box-shadow: none;
+}
+
+.sheet-footer:empty {
+  display: none;
 }
 
 .fade-enter-active,
