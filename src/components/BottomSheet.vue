@@ -24,7 +24,11 @@ const minHeight = defineModel('minHeight');
 const sheet = ref<HTMLElement | null>(null);
 const sheetHeader = ref<HTMLElement | null>(null);
 const sheetFooter = ref<HTMLElement | null>(null);
+const sheetScroll = ref<HTMLElement | null>(null);
 const sheetContentWrapper = ref<HTMLElement | null>(null);
+
+const allowScroll = ref(false);
+const shouldDisableDrag = ref(false);
 
 const overlay = ref<HTMLElement | null>(null);
 const showSheet = ref<boolean>(false);
@@ -92,6 +96,13 @@ const findClosestIndexBreakpoint = () => {
   currentBreakpointIndex.value = sortedBreakpoints.value.indexOf(closestBreakpoint);
 };
 
+function handleSheetScroll(event: TouchEvent) {
+  if (!allowScroll.value) {
+    event.preventDefault();
+    shouldDisableDrag.value = true
+  }
+}
+
 useGesture({
   onDrag: ({delta}) => {
     if (!sheet.value) return;
@@ -142,10 +153,16 @@ useGesture({
 
 if (props.expandOnContentDrag) {
   useGesture({
+    onDragStart: () => {
+      shouldDisableDrag.value =
+          !(height.value === sortedBreakpoints.value[sortedBreakpoints.value.length - 1]
+              && sheetScroll.value!.scrollTop === 0);
+    },
     onDrag: ({delta}) => {
+      console.log(shouldDisableDrag.value)
       if (!sheet.value) return;
 
-      if (translateY.value === 0) {
+      if (translateY.value === 0 && !allowScroll.value || !shouldDisableDrag.value) {
         height.value -= delta[1];
       }
 
@@ -160,8 +177,18 @@ if (props.expandOnContentDrag) {
             : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
       }
 
+      if (height.value > sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
+        height.value = sortedBreakpoints.value[sortedBreakpoints.value.length - 1];
+      }
+
+      if (height.value === sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
+        allowScroll.value = true;
+      } else {
+        allowScroll.value = false;
+      }
+
       sheet.value.style.transition = '';
-      style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
+      style.height = height.value;
     },
     onDragEnd: () => {
       if (!sheet.value) return;
@@ -213,7 +240,7 @@ defineExpose({open, close});
           <slot name="header"></slot>
         </div>
 
-        <div class="sheet-scroll">
+        <div class="sheet-scroll" ref="sheetScroll" @touchmove="handleSheetScroll">
           <div ref="sheetContentWrapper">
             <div class="sheet-content">
               <slot></slot>
@@ -303,6 +330,7 @@ defineExpose({open, close});
 .sheet-scroll {
   flex-grow: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sheet-content {
