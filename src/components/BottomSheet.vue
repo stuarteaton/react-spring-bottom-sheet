@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
-import {useElementSize, useWindowSize} from '@vueuse/core'
-import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture'
-import {useElementStyle, useElementTransform} from '@vueuse/motion'
+import {computed, onMounted, ref} from 'vue';
+import {useElementSize, useWindowSize} from '@vueuse/core';
+import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture';
+import {useElementStyle, useElementTransform} from '@vueuse/motion';
 
 interface IProps {
-  snapPoints: number[]
-  defaultBreakpoint?: number
-  canSwipeClose?: boolean
-  canOverlayClose?: boolean
-  expandOnContentDrag?: boolean
+  snapPoints: number[];
+  defaultBreakpoint?: number;
+  canSwipeClose?: boolean;
+  canOverlayClose?: boolean;
+  expandOnContentDrag?: boolean;
 }
 
 const props = withDefaults(defineProps<IProps>(), {
   canSwipeClose: true,
   canOverlayClose: true,
   expandOnContentDrag: true
-})
+});
 
-const maxHeight = defineModel('maxHeight')
-const minHeight = defineModel('minHeight')
+const maxHeight = defineModel('maxHeight');
+const minHeight = defineModel('minHeight');
 
 const sheet = ref<HTMLElement | null>(null);
 const sheetHeader = ref<HTMLElement | null>(null);
@@ -29,216 +29,177 @@ const sheetContentWrapper = ref<HTMLElement | null>(null);
 const overlay = ref<HTMLElement | null>(null);
 const showSheet = ref<boolean>(false);
 
-const {height: windowHeight} = useWindowSize()
-const {height: sheetHeight} = useElementSize(sheet)
-const {height: sheetContentWrapperHeight} = useElementSize(sheetContentWrapper)
+const {height: windowHeight} = useWindowSize();
+const {height: sheetHeight} = useElementSize(sheet);
+const {height: sheetContentWrapperHeight} = useElementSize(sheetContentWrapper);
 
 const minHeightComputed = computed(() => {
-  // use getBoundingClientRect for precise heights
   return sheetContentWrapperHeight.value
       + Math.ceil(sheetHeader.value!.getBoundingClientRect().height)
       + Math.ceil(sheetFooter.value!.getBoundingClientRect().height);
-})
+});
 
-const {style} = useElementStyle(sheet)
-const {transform} = useElementTransform(sheet)
+const {style} = useElementStyle(sheet);
+const {transform} = useElementTransform(sheet);
 
 const currentBreakpointIndex = ref(0);
 const sortedBreakpoints = computed(() => {
-  return [...props.snapPoints].sort((a, b) => a - b)
+  return [...props.snapPoints].sort((a, b) => a - b);
 });
 
-const height = ref()
-const translateY = ref(0)
+const height = ref();
+const translateY = ref(0);
 
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
-    close()
+    close();
   }
-}
+};
 
 const open = () => {
-  if (!sheet.value) return
+  if (!sheet.value) return;
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out'
-  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : sortedBreakpoints.value[0];
-  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : sortedBreakpoints.value[0];
+  sheet.value.style.transition = 'all 0.3s ease-in-out';
+  height.value = props.defaultBreakpoint ?? sortedBreakpoints.value[0];
+  style.height = height.value;
   transform.translateY = 0;
   showSheet.value = true;
 
-  window.addEventListener('keydown', handleEscapeKey)
-}
+  window.addEventListener('keydown', handleEscapeKey);
+};
 
 const close = () => {
-  if (!sheet.value) return
+  if (!sheet.value) return;
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out'
+  sheet.value.style.transition = 'all 0.3s ease-in-out';
   transform.translateY = sheetHeight.value;
   showSheet.value = false;
 
-  window.removeEventListener('keydown', handleEscapeKey)
-}
+  window.removeEventListener('keydown', handleEscapeKey);
+};
 
 const overlayClick = () => {
   if (props.canOverlayClose) {
-    close()
+    close();
   }
-}
+};
 
-function findClosestIndexBreakpoint() {
-  const closestBreakpoint = sortedBreakpoints.value.reduce((previous: number, current: number) => {
+const findClosestIndexBreakpoint = () => {
+  const closestBreakpoint = sortedBreakpoints.value.reduce((previous, current) => {
     return Math.abs(current - height.value) < Math.abs(previous - height.value) ? current : previous;
   });
 
   currentBreakpointIndex.value = sortedBreakpoints.value.indexOf(closestBreakpoint);
-}
+};
 
-useGesture(
-    {
-      onDrag: ({delta}) => {
-        if (!sheet.value) return;
+useGesture({
+  onDrag: ({delta}) => {
+    if (!sheet.value) return;
 
-
-        if (translateY.value === 0) {
-          height.value -= delta[1];
-        }
-
-        if (height.value <= sortedBreakpoints.value[0]) {
-          height.value = sortedBreakpoints.value[0];
-
-          translateY.value += delta[1];
-
-          if (translateY.value >= sortedBreakpoints.value[0]) {
-            translateY.value = sortedBreakpoints.value[0];
-          }
-          if (translateY.value <= 0) {
-            translateY.value = 0;
-          }
-
-          if (props.canSwipeClose) {
-            transform.translateY = translateY.value;
-          } else {
-            transform.translateY = rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
-          }
-        }
-
-        sheet.value.style.transition = '';
-        style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
-      },
-      onDragEnd: () => {
-        if (!sheet.value) return;
-
-        findClosestIndexBreakpoint();
-
-        translateY.value = props.canSwipeClose
-            ? [0, height.value].reduce((prev, curr) => {
-              return Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value)
-                  ? curr
-                  : prev
-            })
-            : 0;
-        transform.translateY = translateY.value;
-
-        if (translateY.value === height.value) {
-          translateY.value = 0;
-          close();
-        }
-
-        sheet.value.style.transition = 'all 0.3s ease-in-out';
-        height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
-        style.height = sortedBreakpoints.value[currentBreakpointIndex.value];
-      },
-    },
-    {
-      domTarget: sheetHeader,
-      drag: {
-        // preventWindowScrollY: true,
-        filterTaps: false,
-      },
+    if (translateY.value === 0) {
+      height.value -= delta[1];
     }
-);
 
+    if (height.value <= sortedBreakpoints.value[0]) {
+      height.value = sortedBreakpoints.value[0];
+
+      translateY.value += delta[1];
+      translateY.value = Math.max(0, Math.min(translateY.value, sortedBreakpoints.value[0]));
+
+      transform.translateY = props.canSwipeClose
+          ? translateY.value
+          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
+    }
+
+    sheet.value.style.transition = '';
+    style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
+  },
+  onDragEnd: () => {
+    if (!sheet.value) return;
+
+    findClosestIndexBreakpoint();
+
+    translateY.value = props.canSwipeClose
+        ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
+        : 0;
+    transform.translateY = translateY.value;
+
+    if (translateY.value === height.value) {
+      translateY.value = 0;
+      close();
+    }
+
+    sheet.value.style.transition = 'all 0.3s ease-in-out';
+    height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
+    style.height = height.value;
+  }
+}, {
+  domTarget: sheetHeader,
+  drag: {
+    filterTaps: false
+  }
+});
 
 if (props.expandOnContentDrag) {
-  useGesture(
-      {
-        onDrag: ({delta}) => {
-          if (!sheet.value) return;
+  useGesture({
+    onDrag: ({delta}) => {
+      if (!sheet.value) return;
 
-
-          if (translateY.value === 0) {
-            height.value -= delta[1];
-          }
-
-          if (height.value <= sortedBreakpoints.value[0]) {
-            height.value = sortedBreakpoints.value[0];
-
-            translateY.value += delta[1];
-
-            if (translateY.value >= sortedBreakpoints.value[0]) {
-              translateY.value = sortedBreakpoints.value[0];
-            }
-            if (translateY.value <= 0) {
-              translateY.value = 0;
-            }
-
-            if (props.canSwipeClose) {
-              transform.translateY = translateY.value;
-            } else {
-              transform.translateY = rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
-            }
-          }
-
-          sheet.value.style.transition = '';
-          style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
-        },
-        onDragEnd: () => {
-          if (!sheet.value) return;
-
-          findClosestIndexBreakpoint();
-
-
-          translateY.value = props.canSwipeClose
-              ? [0, height.value].reduce((prev, curr) => {
-                return Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value)
-                    ? curr
-                    : prev
-              })
-              : 0;
-          transform.translateY = translateY.value;
-
-          if (translateY.value === height.value) {
-            translateY.value = 0;
-            close();
-          }
-
-          sheet.value.style.transition = 'all 0.3s ease-in-out';
-          height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
-          style.height = sortedBreakpoints.value[currentBreakpointIndex.value];
-        },
-      },
-      {
-        domTarget: sheetContentWrapper,
-        drag: {
-          // preventWindowScrollY: true,
-          filterTaps: false,
-        },
+      if (translateY.value === 0) {
+        height.value -= delta[1];
       }
-  );
+
+      if (height.value <= sortedBreakpoints.value[0]) {
+        height.value = sortedBreakpoints.value[0];
+
+        translateY.value += delta[1];
+        translateY.value = Math.max(0, Math.min(translateY.value, sortedBreakpoints.value[0]));
+
+        transform.translateY = props.canSwipeClose
+            ? translateY.value
+            : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
+      }
+
+      sheet.value.style.transition = '';
+      style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
+    },
+    onDragEnd: () => {
+      if (!sheet.value) return;
+
+      findClosestIndexBreakpoint();
+
+      translateY.value = props.canSwipeClose
+          ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
+          : 0;
+      transform.translateY = translateY.value;
+
+      if (translateY.value === height.value) {
+        translateY.value = 0;
+        close();
+      }
+
+      sheet.value.style.transition = 'all 0.3s ease-in-out';
+      height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
+      style.height = height.value;
+    }
+  }, {
+    domTarget: sheetContentWrapper,
+    drag: {
+      filterTaps: false
+    }
+  });
 }
 
 onMounted(() => {
   maxHeight.value = windowHeight.value;
   minHeight.value = minHeightComputed.value;
 
-  // should not use minHeight.value in same function as it probably takes one tick to update
-  height.value = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
-  style.height = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
+  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value);
+  style.height = height.value;
+  transform.translateY = height.value;
+});
 
-  transform.translateY = props.defaultBreakpoint ? props.defaultBreakpoint : Number(minHeightComputed.value);
-})
-
-defineExpose({open, close})
+defineExpose({open, close});
 </script>
 
 <template>
