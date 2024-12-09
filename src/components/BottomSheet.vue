@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {computed, onMounted, ref} from 'vue'
 import {useElementSize, useWindowSize} from '@vueuse/core'
 import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture'
@@ -245,10 +245,10 @@ defineExpose({open, close})
   <Teleport to="body">
     <div class="sheet-container">
       <Transition name="fade">
-        <div class="sheet-overlay" ref="overlay" @click="overlayClick()" v-show="showSheet"/>
+        <div v-show="showSheet" ref="overlay" class="sheet-overlay" @click="overlayClick()"/>
       </Transition>
-      <div class="sheet" :class="showSheet && 'sheet-show'" ref="sheet">
-        <div class="sheet-header" ref="sheetHeader">
+      <div ref="sheet" :class="showSheet && 'sheet-show'" class="sheet">
+        <div ref="sheetHeader" class="sheet-header">
           <slot name="header"></slot>
         </div>
 
@@ -260,7 +260,7 @@ defineExpose({open, close})
           </div>
         </div>
 
-        <div class="sheet-footer" ref="sheetFooter">
+        <div ref="sheetFooter" class="sheet-footer">
           <slot name="footer"></slot>
         </div>
       </div>
@@ -270,43 +270,40 @@ defineExpose({open, close})
 
 <style scoped>
 .sheet-overlay {
-  z-index: -1;
-  position: absolute;
-  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
   pointer-events: auto;
+  position: absolute;
   user-select: none;
-
   will-change: opacity;
+  z-index: -1;
 }
 
 .sheet-container {
-  z-index: 99999;
-  max-height: 100dvh;
-  width: 100%;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  overflow: hidden;
-  position: absolute;
+  display: flex;
   inset: 0;
-  pointer-events: none;
   isolation: isolate;
+  justify-content: center;
+  max-height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 99999;
 }
 
 .sheet {
+  background-color: #ffffff;
+  border-radius: 16px 16px 0 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  position: absolute;
-  width: 640px;
-  height: fit-content;
   max-height: inherit;
-  border-radius: 16px 16px 0 0;
-  background-color: #ffffff;
-  bottom: 0;
   pointer-events: all;
+  position: absolute;
   visibility: hidden;
-
+  width: 640px;
   will-change: height;
 }
 
@@ -315,36 +312,36 @@ defineExpose({open, close})
 }
 
 .sheet-header {
-  user-select: none;
-  padding: 20px 16px 8px 16px;
-  flex-shrink: 0;
   box-shadow: 0 1px 0 rgba(46, 59, 66, 0.125);
+  flex-shrink: 0;
+  padding: 20px 16px 8px 16px;
+  user-select: none;
 }
 
 .sheet-header:before {
-  position: absolute;
+  background-color: rgba(0, 0, 0, 0.28);
+  border-radius: 2px;
   content: "";
   display: block;
-  width: 36px;
   height: 4px;
-  top: 8px;
   left: 50%;
+  position: absolute;
+  top: 8px;
   transform: translateX(-50%);
-  border-radius: 2px;
-  background-color: rgba(0, 0, 0, .28);
+  width: 36px;
 }
 
 .sheet-footer {
-  flex-shrink: 0;
-  flex-grow: 0;
-  user-select: none;
-  padding: 16px;
   box-shadow: 0 -1px 0 rgba(46, 59, 66, 0.125), 0 2px 0 #fff;
+  flex-grow: 0;
+  flex-shrink: 0;
+  padding: 16px;
+  user-select: none;
 }
 
 .sheet-scroll {
-  overflow-y: auto;
   flex-grow: 1;
+  overflow-y: auto;
 }
 
 .sheet-content {
@@ -359,9 +356,6 @@ defineExpose({open, close})
   }
 
   .sheet-header {
-    user-select: none;
-    padding: 20px 16px 8px 16px;
-    flex-shrink: 0;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
@@ -374,10 +368,9 @@ defineExpose({open, close})
   }
 }
 
-
 .sheet-header:empty {
-  padding: 12px 16px 8px 16px;
   box-shadow: none;
+  padding: 12px 16px 8px 16px;
 }
 
 .sheet-footer:empty {
