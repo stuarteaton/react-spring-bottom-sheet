@@ -22,7 +22,7 @@ const close = () => {
       ref="myBottomSheet"
       v-model:max-height="maxHeight"
       v-model:min-height="minHeight"
-      :snap-points="[maxHeight / 3, maxHeight / 1.5]"
+      :snap-points="[maxHeight / 2]"
       :can-overlay-close="true"
       :can-swipe-close="true"
       :expandOnContentDrag="true"

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue';
+import {computed, onMounted, ref, toRefs} from 'vue';
 import {useElementBounding, useWindowSize} from '@vueuse/core';
 import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture';
 import {useElementStyle, useElementTransform} from '@vueuse/motion';
+import {useSnapPoints} from "../composables/useSnapPoints.ts";
 
 interface IProps {
   snapPoints: number[];
@@ -46,13 +47,18 @@ const minHeightComputed = computed(() => {
 const {style} = useElementStyle(sheet);
 const {transform} = useElementTransform(sheet);
 
-const currentBreakpointIndex = ref(0);
-const sortedBreakpoints = computed(() => {
-  return [...props.snapPoints].sort((a, b) => a - b);
-});
-
 const height = ref();
 const translateY = ref(0);
+
+const {snapPoints: propSnapPoints} = toRefs(props)
+const {
+  minSnap,
+  maxSnap,
+  snapPoints,
+  currentSnapPoint,
+  snapToPoint,
+  findClosestSnapPoint
+} = useSnapPoints(propSnapPoints, height);
 
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -64,7 +70,7 @@ const open = () => {
   if (!sheet.value) return;
 
   sheet.value.style.transition = 'all 0.3s ease-in-out';
-  height.value = props.defaultBreakpoint ?? sortedBreakpoints.value[0];
+  height.value = props.defaultBreakpoint ?? minSnap.value;
   style.height = height.value;
   transform.translateY = 0;
   showSheet.value = true;
@@ -88,14 +94,6 @@ const overlayClick = () => {
   }
 };
 
-const findClosestIndexBreakpoint = () => {
-  const closestBreakpoint = sortedBreakpoints.value.reduce((previous, current) => {
-    return Math.abs(current - height.value) < Math.abs(previous - height.value) ? current : previous;
-  });
-
-  currentBreakpointIndex.value = sortedBreakpoints.value.indexOf(closestBreakpoint);
-};
-
 function handleSheetScroll(event: TouchEvent) {
   if (!allowScroll.value) {
     event.preventDefault();
@@ -111,11 +109,11 @@ useGesture({
       height.value -= delta[1];
     }
 
-    if (height.value <= sortedBreakpoints.value[0]) {
-      height.value = sortedBreakpoints.value[0];
+    if (height.value <= minSnap.value) {
+      height.value = minSnap.value;
 
       translateY.value += delta[1];
-      translateY.value = Math.max(0, Math.min(translateY.value, sortedBreakpoints.value[0]));
+      translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value));
 
       transform.translateY = props.canSwipeClose
           ? translateY.value
@@ -123,12 +121,12 @@ useGesture({
     }
 
     sheet.value.style.transition = '';
-    style.height = rubberbandIfOutOfBounds(height.value, 0, sortedBreakpoints.value[sortedBreakpoints.value.length - 1], 0.25);
+    style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25);
   },
   onDragEnd: () => {
     if (!sheet.value) return;
 
-    findClosestIndexBreakpoint();
+    snapToPoint(findClosestSnapPoint.value)
 
     translateY.value = props.canSwipeClose
         ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
@@ -141,7 +139,7 @@ useGesture({
     }
 
     sheet.value.style.transition = 'all 0.3s ease-in-out';
-    height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
+    height.value = snapPoints.value[currentSnapPoint.value];
     style.height = height.value;
   }
 }, {
@@ -155,8 +153,16 @@ if (props.expandOnContentDrag) {
   useGesture({
     onDragStart: () => {
       shouldDisableDrag.value =
-          !(height.value === sortedBreakpoints.value[sortedBreakpoints.value.length - 1]
+          !(height.value === maxSnap.value
               && sheetScroll.value!.scrollTop === 0);
+
+      if (snapPoints.value.length === 1) {
+        shouldDisableDrag.value =
+            translateY.value === 0
+            && sheetScroll.value!.scrollTop === 0;
+
+        allowScroll.value = false;
+      }
     },
     onDrag: ({delta}) => {
       if (!sheet.value) return;
@@ -165,25 +171,32 @@ if (props.expandOnContentDrag) {
         height.value -= delta[1];
       }
 
-      if (height.value <= sortedBreakpoints.value[0]) {
-        height.value = sortedBreakpoints.value[0];
+      if (height.value <= minSnap.value) {
+        height.value = minSnap.value;
 
-        translateY.value += delta[1];
-        translateY.value = Math.max(0, Math.min(translateY.value, sortedBreakpoints.value[0]));
+        console.log(!allowScroll.value, shouldDisableDrag.value)
+        if (!allowScroll.value && shouldDisableDrag.value) {
+          translateY.value += delta[1];
+          console.log(translateY.value)
+        }
+
+        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value));
 
         transform.translateY = props.canSwipeClose
             ? translateY.value
             : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
       }
 
-      if (height.value > sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
-        height.value = sortedBreakpoints.value[sortedBreakpoints.value.length - 1];
+      if (height.value > maxSnap.value) {
+        height.value = maxSnap.value;
       }
 
-      if (height.value === sortedBreakpoints.value[sortedBreakpoints.value.length - 1]) {
+      if (snapPoints.value.length > 1) {
+        allowScroll.value = height.value === maxSnap.value;
+      }
+
+      if (translateY.value === 0) {
         allowScroll.value = true;
-      } else {
-        allowScroll.value = false;
       }
 
       sheet.value.style.transition = '';
@@ -192,7 +205,7 @@ if (props.expandOnContentDrag) {
     onDragEnd: () => {
       if (!sheet.value) return;
 
-      findClosestIndexBreakpoint();
+      snapToPoint(findClosestSnapPoint.value)
 
       translateY.value = props.canSwipeClose
           ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
@@ -205,7 +218,7 @@ if (props.expandOnContentDrag) {
       }
 
       sheet.value.style.transition = 'all 0.3s ease-in-out';
-      height.value = sortedBreakpoints.value[currentBreakpointIndex.value];
+      height.value = snapPoints.value[currentSnapPoint.value];
       style.height = height.value;
     }
   }, {
