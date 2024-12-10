@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {computed, onMounted, ref} from 'vue';
-import {useElementSize, useWindowSize} from '@vueuse/core';
+import {useElementBounding, useWindowSize} from '@vueuse/core';
 import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture';
 import {useElementStyle, useElementTransform} from '@vueuse/motion';
 
@@ -34,13 +34,13 @@ const overlay = ref<HTMLElement | null>(null);
 const showSheet = ref<boolean>(false);
 
 const {height: windowHeight} = useWindowSize();
-const {height: sheetHeight} = useElementSize(sheet);
-const {height: sheetContentWrapperHeight} = useElementSize(sheetContentWrapper);
+const {height: sheetHeight} = useElementBounding(sheet);
+const {height: sheetHeaderHeight} = useElementBounding(sheetHeader);
+const {height: sheetFooterHeight} = useElementBounding(sheetFooter);
+const {height: sheetContentWrapperHeight} = useElementBounding(sheetContentWrapper);
 
 const minHeightComputed = computed(() => {
-  return sheetContentWrapperHeight.value
-      + Math.ceil(sheetHeader.value!.getBoundingClientRect().height)
-      + Math.ceil(sheetFooter.value!.getBoundingClientRect().height);
+  return Math.ceil(sheetContentWrapperHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value);
 });
 
 const {style} = useElementStyle(sheet);
@@ -159,7 +159,6 @@ if (props.expandOnContentDrag) {
               && sheetScroll.value!.scrollTop === 0);
     },
     onDrag: ({delta}) => {
-      console.log(shouldDisableDrag.value)
       if (!sheet.value) return;
 
       if (translateY.value === 0 && !allowScroll.value || !shouldDisableDrag.value) {
@@ -320,7 +319,7 @@ defineExpose({open, close});
 }
 
 .sheet-footer {
-  box-shadow: 0 -1px 0 rgba(46, 59, 66, 0.125), 0 2px 0 #fff;
+  box-shadow: 0 -1px 0 rgba(46, 59, 66, 0.125);
   flex-grow: 0;
   flex-shrink: 0;
   padding: 16px;
@@ -345,7 +344,7 @@ defineExpose({open, close});
   }
 
   .sheet-header {
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 
   .sheet-header:before {
@@ -353,7 +352,7 @@ defineExpose({open, close});
   }
 
   .sheet-footer {
-    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.12), 0 2px 0 #fff;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.16);
   }
 }
 
