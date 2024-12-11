@@ -14,6 +14,10 @@ const open = () => {
 const close = () => {
   myBottomSheet.value?.close()
 }
+
+const snapToPoint = (index: number) => {
+  myBottomSheet.value?.snapToPoint(index)
+}
 </script>
 
 <template>
@@ -25,11 +29,16 @@ const close = () => {
     :can-overlay-close="true"
     :can-swipe-close="true"
     :expandOnContentDrag="true"
-    :snap-points="[maxHeight / 3, maxHeight / 1.5]"
+    :snap-points="[maxHeight / 3, maxHeight / 2, maxHeight]"
   >
     <template #header>
       <h1 style="font-size: 24px; margin: 0; text-align: center">Header</h1>
     </template>
+    <div class="button-group">
+      <button type="button" @click="snapToPoint(2)">Top</button>
+      <button type="button" @click="snapToPoint(1)">Middle</button>
+      <button type="button" @click="snapToPoint(0)">Bottom</button>
+    </div>
     <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
     <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
     <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
@@ -58,6 +67,15 @@ body {
   min-height: 100dvh;
   overflow: hidden;
   width: 100%;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.button-group button {
+  flex: 1 1 33%;
 }
 
 #app {

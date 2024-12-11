@@ -54,7 +54,7 @@ const translateY = ref(0)
 
 // Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
-const { minSnap, maxSnap, snapPoints, currentSnapPoint, snapToPoint, findClosestSnapPoint } = useSnapPoints(propSnapPoints, height)
+const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(propSnapPoints, height)
 
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
@@ -65,7 +65,7 @@ const handleEscapeKey = (e: KeyboardEvent) => {
 const open = () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out'
+  sheet.value.style.transition = 'all 250ms ease-in-out'
   height.value = props.defaultBreakpoint ?? minSnap.value
   style.height = height.value
   transform.translateY = 0
@@ -78,7 +78,7 @@ const open = () => {
 const close = () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out'
+  sheet.value.style.transition = 'all 250ms ease-in-out'
   transform.translateY = sheetHeight.value
   showSheet.value = false
 
@@ -95,6 +95,14 @@ function handleSheetScroll(event: TouchEvent) {
   if (preventScroll.value) {
     event.preventDefault()
   }
+}
+
+const snapToPoint = (index: number) => {
+  if (!sheet.value) return
+
+  sheet.value.style.transition = 'all 250ms ease-in-out'
+  height.value = snapPoints.value[index]
+  style.height = height.value
 }
 
 // Header drag gesture
@@ -124,8 +132,6 @@ useGesture(
     onDragEnd: () => {
       if (!sheet.value) return
 
-      snapToPoint(findClosestSnapPoint.value)
-
       translateY.value = props.canSwipeClose
         ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
         : 0
@@ -136,8 +142,8 @@ useGesture(
         close()
       }
 
-      sheet.value.style.transition = 'all 0.3s ease-in-out'
-      height.value = snapPoints.value[currentSnapPoint.value]
+      sheet.value.style.transition = 'all 250ms ease-in-out'
+      height.value = snapPoints.value[closestSnapPoint.value]
       style.height = height.value
     },
   },
@@ -208,8 +214,6 @@ if (props.expandOnContentDrag) {
       onDragEnd: () => {
         if (!sheet.value) return
 
-        snapToPoint(findClosestSnapPoint.value)
-
         translateY.value = props.canSwipeClose
           ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
           : 0
@@ -220,8 +224,8 @@ if (props.expandOnContentDrag) {
           close()
         }
 
-        sheet.value.style.transition = 'all 0.3s ease-in-out'
-        height.value = snapPoints.value[currentSnapPoint.value]
+        sheet.value.style.transition = 'all 250ms ease-in-out'
+        height.value = snapPoints.value[closestSnapPoint.value]
         style.height = height.value
       },
     },
@@ -243,12 +247,12 @@ onMounted(() => {
 })
 
 // Expose methods
-defineExpose({ open, close })
+defineExpose({ open, close, snapToPoint })
 </script>
 
 <template>
   <Teleport to="body">
-    <div class="sheet-container">
+    <div class="sheet-container" tabindex="-1" :aria-hidden="!showSheet">
       <Transition name="fade">
         <div v-show="showSheet" ref="overlay" class="sheet-overlay" @click="overlayClick()" />
       </Transition>
