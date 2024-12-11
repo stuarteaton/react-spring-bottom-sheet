@@ -1,258 +1,255 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref, toRefs} from 'vue';
-import {useElementBounding, useWindowSize} from '@vueuse/core';
-import {rubberbandIfOutOfBounds, useGesture} from '@vueuse/gesture';
-import {useElementStyle, useElementTransform} from '@vueuse/motion';
-import {useSnapPoints} from "../composables/useSnapPoints.ts";
+import { ref, computed, onMounted, toRefs } from 'vue'
+import { useElementBounding, useWindowSize } from '@vueuse/core'
+import { rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
+import { useElementStyle, useElementTransform } from '@vueuse/motion'
+import { useSnapPoints } from '../composables/useSnapPoints'
 
-interface IProps {
-  snapPoints: number[];
-  defaultBreakpoint?: number;
-  canSwipeClose?: boolean;
-  canOverlayClose?: boolean;
-  expandOnContentDrag?: boolean;
+interface SheetProps {
+  snapPoints: number[]
+  defaultBreakpoint?: number
+  canSwipeClose?: boolean
+  canOverlayClose?: boolean
+  expandOnContentDrag?: boolean
 }
 
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<SheetProps>(), {
   canSwipeClose: true,
   canOverlayClose: true,
-  expandOnContentDrag: true
-});
+  expandOnContentDrag: true,
+})
 
-const maxHeight = defineModel('maxHeight');
-const minHeight = defineModel('minHeight');
+const maxHeight = defineModel<number>('maxHeight')
+const minHeight = defineModel<number>('minHeight')
 
-const sheet = ref<HTMLElement | null>(null);
-const sheetHeader = ref<HTMLElement | null>(null);
-const sheetFooter = ref<HTMLElement | null>(null);
-const sheetScroll = ref<HTMLElement | null>(null);
-const sheetContentWrapper = ref<HTMLElement | null>(null);
+// Refs for DOM elements
+const sheet = ref<HTMLElement | null>(null)
+const sheetHeader = ref<HTMLElement | null>(null)
+const sheetFooter = ref<HTMLElement | null>(null)
+const sheetScroll = ref<HTMLElement | null>(null)
+const sheetContentWrapper = ref<HTMLElement | null>(null)
 
-const allowScroll = ref(false);
-const shouldDisableDrag = ref(false);
+// State management refs
+const allowScroll = ref(false)
+const shouldDisableDrag = ref(false)
+const overlay = ref<HTMLElement | null>(null)
+const showSheet = ref(false)
 
-const overlay = ref<HTMLElement | null>(null);
-const showSheet = ref<boolean>(false);
+// Element dimensions
+const { height: windowHeight } = useWindowSize()
+const { height: sheetHeight } = useElementBounding(sheet)
+const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
+const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
+const { height: sheetContentWrapperHeight } = useElementBounding(sheetContentWrapper)
 
-const {height: windowHeight} = useWindowSize();
-const {height: sheetHeight} = useElementBounding(sheet);
-const {height: sheetHeaderHeight} = useElementBounding(sheetHeader);
-const {height: sheetFooterHeight} = useElementBounding(sheetFooter);
-const {height: sheetContentWrapperHeight} = useElementBounding(sheetContentWrapper);
+// Computed minimum height
+const minHeightComputed = computed(() => Math.ceil(sheetContentWrapperHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
 
-const minHeightComputed = computed(() => {
-  return Math.ceil(sheetContentWrapperHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value);
-});
+// Element styling and transforms
+const { style } = useElementStyle(sheet)
+const { transform } = useElementTransform(sheet)
 
-const {style} = useElementStyle(sheet);
-const {transform} = useElementTransform(sheet);
+// Height and translation management
+const height = ref(0)
+const translateY = ref(0)
 
-const height = ref();
-const translateY = ref(0);
+// Snap points management
+const { snapPoints: propSnapPoints } = toRefs(props)
+const { minSnap, maxSnap, snapPoints, currentSnapPoint, snapToPoint, findClosestSnapPoint } = useSnapPoints(propSnapPoints, height)
 
-const {snapPoints: propSnapPoints} = toRefs(props)
-const {
-  minSnap,
-  maxSnap,
-  snapPoints,
-  currentSnapPoint,
-  snapToPoint,
-  findClosestSnapPoint
-} = useSnapPoints(propSnapPoints, height);
-
+// Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    close();
-  }
-};
+  if (e.key === 'Escape') close()
+}
 
+// Open sheet method
 const open = () => {
-  if (!sheet.value) return;
+  if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out';
-  height.value = props.defaultBreakpoint ?? minSnap.value;
-  style.height = height.value;
-  transform.translateY = 0;
-  showSheet.value = true;
+  sheet.value.style.transition = 'all 0.3s ease-in-out'
+  height.value = props.defaultBreakpoint ?? minSnap.value
+  style.height = height.value
+  transform.translateY = 0
+  showSheet.value = true
 
-  window.addEventListener('keydown', handleEscapeKey);
-};
+  window.addEventListener('keydown', handleEscapeKey)
+}
 
+// Close sheet method
 const close = () => {
-  if (!sheet.value) return;
+  if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 0.3s ease-in-out';
-  transform.translateY = sheetHeight.value;
-  showSheet.value = false;
+  sheet.value.style.transition = 'all 0.3s ease-in-out'
+  transform.translateY = sheetHeight.value
+  showSheet.value = false
 
-  window.removeEventListener('keydown', handleEscapeKey);
-};
+  window.removeEventListener('keydown', handleEscapeKey)
+}
 
+// Overlay click handler
 const overlayClick = () => {
-  if (props.canOverlayClose) {
-    close();
-  }
-};
+  if (props.canOverlayClose) close()
+}
 
+// Scroll prevention handler
 function handleSheetScroll(event: TouchEvent) {
   if (!allowScroll.value) {
-    event.preventDefault();
+    event.preventDefault()
     shouldDisableDrag.value = true
   }
 }
 
-useGesture({
-  onDrag: ({delta}) => {
-    if (!sheet.value) return;
+// Header drag gesture
+useGesture(
+  {
+    onDrag: ({ delta }) => {
+      if (!sheet.value) return
 
-    if (translateY.value === 0) {
-      height.value -= delta[1];
-    }
-
-    if (height.value <= minSnap.value) {
-      height.value = minSnap.value;
-
-      translateY.value += delta[1];
-      translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value));
-
-      transform.translateY = props.canSwipeClose
-          ? translateY.value
-          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
-    }
-
-    sheet.value.style.transition = '';
-    style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25);
-  },
-  onDragEnd: () => {
-    if (!sheet.value) return;
-
-    snapToPoint(findClosestSnapPoint.value)
-
-    translateY.value = props.canSwipeClose
-        ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
-        : 0;
-    transform.translateY = translateY.value;
-
-    if (translateY.value === height.value) {
-      translateY.value = 0;
-      close();
-    }
-
-    sheet.value.style.transition = 'all 0.3s ease-in-out';
-    height.value = snapPoints.value[currentSnapPoint.value];
-    style.height = height.value;
-  }
-}, {
-  domTarget: sheetHeader,
-  drag: {
-    filterTaps: false
-  }
-});
-
-if (props.expandOnContentDrag) {
-  useGesture({
-    onDragStart: () => {
-      shouldDisableDrag.value =
-          !(height.value === maxSnap.value
-              && sheetScroll.value!.scrollTop === 0);
-
-      if (snapPoints.value.length === 1) {
-        shouldDisableDrag.value =
-            translateY.value === 0
-            && sheetScroll.value!.scrollTop === 0;
-
-        allowScroll.value = false;
-      }
-    },
-    onDrag: ({delta}) => {
-      if (!sheet.value) return;
-
-      if (translateY.value === 0 && !allowScroll.value || !shouldDisableDrag.value) {
-        height.value -= delta[1];
+      if (translateY.value === 0) {
+        height.value -= delta[1]
       }
 
       if (height.value <= minSnap.value) {
-        height.value = minSnap.value;
+        height.value = minSnap.value
 
-        console.log(!allowScroll.value, shouldDisableDrag.value)
-        if (!allowScroll.value && shouldDisableDrag.value) {
-          translateY.value += delta[1];
-          console.log(translateY.value)
-        }
-
-        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value));
+        translateY.value += delta[1]
+        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
 
         transform.translateY = props.canSwipeClose
-            ? translateY.value
-            : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5);
+          ? translateY.value
+          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
       }
 
-      if (height.value > maxSnap.value) {
-        height.value = maxSnap.value;
-      }
-
-      if (snapPoints.value.length > 1) {
-        allowScroll.value = height.value === maxSnap.value;
-      }
-
-      if (translateY.value === 0) {
-        allowScroll.value = true;
-      }
-
-      sheet.value.style.transition = '';
-      style.height = height.value;
+      sheet.value.style.transition = ''
+      style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25)
     },
     onDragEnd: () => {
-      if (!sheet.value) return;
+      if (!sheet.value) return
 
       snapToPoint(findClosestSnapPoint.value)
 
       translateY.value = props.canSwipeClose
-          ? [0, height.value].reduce((prev, curr) => Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev)
-          : 0;
-      transform.translateY = translateY.value;
+        ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
+        : 0
+      transform.translateY = translateY.value
 
       if (translateY.value === height.value) {
-        translateY.value = 0;
-        close();
+        translateY.value = 0
+        close()
       }
 
-      sheet.value.style.transition = 'all 0.3s ease-in-out';
-      height.value = snapPoints.value[currentSnapPoint.value];
-      style.height = height.value;
-    }
-  }, {
-    domTarget: sheetContentWrapper,
-    drag: {
-      filterTaps: false
-    }
-  });
+      sheet.value.style.transition = 'all 0.3s ease-in-out'
+      height.value = snapPoints.value[currentSnapPoint.value]
+      style.height = height.value
+    },
+  },
+  {
+    domTarget: sheetHeader,
+    drag: { filterTaps: false },
+  },
+)
+
+// Content wrapper drag gesture (if expandOnContentDrag is true)
+if (props.expandOnContentDrag) {
+  useGesture(
+    {
+      onDragStart: () => {
+        shouldDisableDrag.value = !(height.value === maxSnap.value && sheetScroll.value!.scrollTop === 0)
+
+        if (snapPoints.value.length === 1) {
+          shouldDisableDrag.value = translateY.value === 0 && sheetScroll.value!.scrollTop === 0
+          allowScroll.value = false
+        }
+      },
+      onDrag: ({ delta }) => {
+        if (!sheet.value) return
+
+        if ((translateY.value === 0 && !allowScroll.value) || !shouldDisableDrag.value) {
+          height.value -= delta[1]
+        }
+
+        if (height.value <= minSnap.value) {
+          height.value = minSnap.value
+
+          if (!allowScroll.value && shouldDisableDrag.value) {
+            translateY.value += delta[1]
+          }
+
+          translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
+
+          transform.translateY = props.canSwipeClose
+            ? translateY.value
+            : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+        }
+
+        if (height.value > maxSnap.value) {
+          height.value = maxSnap.value
+        }
+
+        if (snapPoints.value.length > 1) {
+          allowScroll.value = height.value === maxSnap.value
+        }
+
+        if (translateY.value === 0) {
+          allowScroll.value = true
+        }
+
+        sheet.value.style.transition = ''
+        style.height = height.value
+      },
+      onDragEnd: () => {
+        if (!sheet.value) return
+
+        snapToPoint(findClosestSnapPoint.value)
+
+        translateY.value = props.canSwipeClose
+          ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
+          : 0
+        transform.translateY = translateY.value
+
+        if (translateY.value === height.value) {
+          translateY.value = 0
+          close()
+        }
+
+        sheet.value.style.transition = 'all 0.3s ease-in-out'
+        height.value = snapPoints.value[currentSnapPoint.value]
+        style.height = height.value
+      },
+    },
+    {
+      domTarget: sheetContentWrapper,
+      drag: { filterTaps: false },
+    },
+  )
 }
 
+// Lifecycle hook
 onMounted(() => {
-  maxHeight.value = windowHeight.value;
-  minHeight.value = minHeightComputed.value;
+  maxHeight.value = windowHeight.value
+  minHeight.value = minHeightComputed.value
 
-  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value);
-  style.height = height.value;
-  transform.translateY = height.value;
-});
+  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
+  style.height = height.value
+  transform.translateY = height.value
+})
 
-defineExpose({open, close});
+// Expose methods
+defineExpose({ open, close })
 </script>
 
 <template>
   <Teleport to="body">
     <div class="sheet-container">
       <Transition name="fade">
-        <div v-show="showSheet" ref="overlay" class="sheet-overlay" @click="overlayClick()"/>
+        <div v-show="showSheet" ref="overlay" class="sheet-overlay" @click="overlayClick()" />
       </Transition>
       <div ref="sheet" :class="showSheet && 'sheet-show'" class="sheet">
         <div ref="sheetHeader" class="sheet-header">
           <slot name="header"></slot>
         </div>
 
-        <div class="sheet-scroll" ref="sheetScroll" @touchmove="handleSheetScroll">
+        <div ref="sheetScroll" class="sheet-scroll" @touchmove="handleSheetScroll">
           <div ref="sheetContentWrapper">
             <div class="sheet-content">
               <slot></slot>
@@ -321,7 +318,7 @@ defineExpose({open, close});
 .sheet-header:before {
   background-color: rgba(0, 0, 0, 0.28);
   border-radius: 2px;
-  content: "";
+  content: '';
   display: block;
   height: 4px;
   left: 50%;

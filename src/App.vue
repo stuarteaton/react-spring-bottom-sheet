@@ -1,6 +1,6 @@
-<script setup lang="ts">
-import {ref, useTemplateRef } from 'vue'
-import BottomSheet from "./components/BottomSheet.vue";
+<script lang="ts" setup>
+import { ref, useTemplateRef } from 'vue'
+import BottomSheet from './components/BottomSheet.vue'
 import type { ComponentExposed } from 'vue-component-type-helpers'
 
 const myBottomSheet = useTemplateRef<ComponentExposed<typeof BottomSheet>>('myBottomSheet')
@@ -8,24 +8,24 @@ const maxHeight = ref(0)
 const minHeight = ref(0)
 
 const open = () => {
-  myBottomSheet.value?.open();
+  myBottomSheet.value?.open()
 }
 
 const close = () => {
-  myBottomSheet.value?.close();
+  myBottomSheet.value?.close()
 }
 </script>
 
 <template>
   <button class="btn btn-primary" type="button" @click="open">Open bottom sheet</button>
   <BottomSheet
-      ref="myBottomSheet"
-      v-model:max-height="maxHeight"
-      v-model:min-height="minHeight"
-      :snap-points="[maxHeight / 2]"
-      :can-overlay-close="true"
-      :can-swipe-close="true"
-      :expandOnContentDrag="true"
+    ref="myBottomSheet"
+    v-model:max-height="maxHeight"
+    v-model:min-height="minHeight"
+    :can-overlay-close="true"
+    :can-swipe-close="true"
+    :expandOnContentDrag="true"
+    :snap-points="[maxHeight / 3, maxHeight / 1.5]"
   >
     <template #header>
       <h1 style="font-size: 24px; margin: 0; text-align: center">Header</h1>
@@ -49,14 +49,15 @@ const close = () => {
 </template>
 
 <style>
-body, html {
+body,
+html {
   overscroll-behavior-y: none;
 }
 
 body {
-  width: 100%;
   min-height: 100dvh;
   overflow: hidden;
+  width: 100%;
 }
 
 #app {
