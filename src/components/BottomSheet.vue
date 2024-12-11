@@ -5,7 +5,7 @@ import { rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useElementStyle, useElementTransform } from '@vueuse/motion'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
-interface SheetProps {
+interface IProps {
   snapPoints: number[]
   defaultBreakpoint?: number
   canSwipeClose?: boolean
@@ -13,7 +13,7 @@ interface SheetProps {
   expandOnContentDrag?: boolean
 }
 
-const props = withDefaults(defineProps<SheetProps>(), {
+const props = withDefaults(defineProps<IProps>(), {
   canSwipeClose: true,
   canOverlayClose: true,
   expandOnContentDrag: true,
@@ -30,8 +30,7 @@ const sheetScroll = ref<HTMLElement | null>(null)
 const sheetContentWrapper = ref<HTMLElement | null>(null)
 
 // State management refs
-const allowScroll = ref(false)
-const shouldDisableDrag = ref(false)
+const preventScroll = ref(true)
 const overlay = ref<HTMLElement | null>(null)
 const showSheet = ref(false)
 
@@ -50,7 +49,7 @@ const { style } = useElementStyle(sheet)
 const { transform } = useElementTransform(sheet)
 
 // Height and translation management
-const height = ref(0)
+const height = ref<number>(0)
 const translateY = ref(0)
 
 // Snap points management
@@ -93,9 +92,8 @@ const overlayClick = () => {
 
 // Scroll prevention handler
 function handleSheetScroll(event: TouchEvent) {
-  if (!allowScroll.value) {
+  if (preventScroll.value) {
     event.preventDefault()
-    shouldDisableDrag.value = true
   }
 }
 
@@ -145,33 +143,45 @@ useGesture(
   },
   {
     domTarget: sheetHeader,
-    drag: { filterTaps: false },
+    drag: { filterTaps: true },
   },
 )
 
-// Content wrapper drag gesture (if expandOnContentDrag is true)
+// Content wrapper drag gesture
 if (props.expandOnContentDrag) {
   useGesture(
     {
-      onDragStart: () => {
-        shouldDisableDrag.value = !(height.value === maxSnap.value && sheetScroll.value!.scrollTop === 0)
+      onDragStart: ({ direction }) => {
+        const isAtTop = sheetScroll.value!.scrollTop === 0
+        const isDraggingDown = direction[1] > 0
 
         if (snapPoints.value.length === 1) {
-          shouldDisableDrag.value = translateY.value === 0 && sheetScroll.value!.scrollTop === 0
-          allowScroll.value = false
+          if (translateY.value === 0 && isAtTop && !isDraggingDown) {
+            preventScroll.value = false
+          }
+          if (translateY.value === 0 && isAtTop && isDraggingDown) {
+            preventScroll.value = true
+          }
+        } else {
+          if (height.value === maxSnap.value && isAtTop && !isDraggingDown) {
+            preventScroll.value = false
+          }
+          if (height.value === maxSnap.value && isAtTop && isDraggingDown) {
+            preventScroll.value = true
+          }
         }
       },
       onDrag: ({ delta }) => {
         if (!sheet.value) return
 
-        if ((translateY.value === 0 && !allowScroll.value) || !shouldDisableDrag.value) {
+        if (translateY.value === 0 && preventScroll.value) {
           height.value -= delta[1]
         }
 
         if (height.value <= minSnap.value) {
           height.value = minSnap.value
 
-          if (!allowScroll.value && shouldDisableDrag.value) {
+          if (preventScroll.value) {
             translateY.value += delta[1]
           }
 
@@ -186,12 +196,15 @@ if (props.expandOnContentDrag) {
           height.value = maxSnap.value
         }
 
-        if (snapPoints.value.length > 1) {
-          allowScroll.value = height.value === maxSnap.value
-        }
-
-        if (translateY.value === 0) {
-          allowScroll.value = true
+        const isAtTop = sheetScroll.value!.scrollTop === 0
+        if (snapPoints.value.length === 1) {
+          if (delta[1] < 0 && translateY.value === 0 && isAtTop) {
+            preventScroll.value = false
+          }
+        } else {
+          if (height.value === maxSnap.value) {
+            preventScroll.value = false
+          }
         }
 
         sheet.value.style.transition = ''
@@ -219,7 +232,7 @@ if (props.expandOnContentDrag) {
     },
     {
       domTarget: sheetContentWrapper,
-      drag: { filterTaps: false },
+      drag: { filterTaps: true },
     },
   )
 }
