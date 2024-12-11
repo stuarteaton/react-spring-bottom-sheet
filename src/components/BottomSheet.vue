@@ -154,20 +154,15 @@ if (props.expandOnContentDrag) {
       onDragStart: ({ direction }) => {
         const isAtTop = sheetScroll.value!.scrollTop === 0
         const isDraggingDown = direction[1] > 0
+        const hasSingleSnapPoint = snapPoints.value.length === 1
 
-        if (snapPoints.value.length === 1) {
-          if (translateY.value === 0 && isAtTop && !isDraggingDown) {
-            preventScroll.value = false
-          }
-          if (translateY.value === 0 && isAtTop && isDraggingDown) {
-            preventScroll.value = true
+        if (hasSingleSnapPoint) {
+          if (translateY.value === 0 && isAtTop) {
+            preventScroll.value = isDraggingDown
           }
         } else {
-          if (height.value === maxSnap.value && isAtTop && !isDraggingDown) {
-            preventScroll.value = false
-          }
-          if (height.value === maxSnap.value && isAtTop && isDraggingDown) {
-            preventScroll.value = true
+          if (height.value === maxSnap.value && isAtTop) {
+            preventScroll.value = isDraggingDown
           }
         }
       },
