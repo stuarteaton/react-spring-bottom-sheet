@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, toRefs } from 'vue'
+import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useElementStyle, useElementTransform } from '@vueuse/motion'
@@ -28,9 +28,10 @@ const sheetHeader = ref<HTMLElement | null>(null)
 const sheetFooter = ref<HTMLElement | null>(null)
 const sheetScroll = ref<HTMLElement | null>(null)
 const sheetContentWrapper = ref<HTMLElement | null>(null)
+const sheetContent = ref<HTMLElement | null>(null)
 
 // State management refs
-const preventScroll = ref(true)
+const preventScroll = ref(props.expandOnContentDrag)
 const overlay = ref<HTMLElement | null>(null)
 const showSheet = ref(false)
 
@@ -39,10 +40,10 @@ const { height: windowHeight } = useWindowSize()
 const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
-const { height: sheetContentWrapperHeight } = useElementBounding(sheetContentWrapper)
+const { height: sheetContentHeight } = useElementBounding(sheetContent)
 
 // Computed minimum height
-const minHeightComputed = computed(() => Math.ceil(sheetContentWrapperHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
+const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
 
 // Element styling and transforms
 const { style } = useElementStyle(sheet)
@@ -236,6 +237,19 @@ if (props.expandOnContentDrag) {
   )
 }
 
+watch(minHeightComputed, () => {
+  if (snapPoints.value.length === 1) {
+    minHeight.value = minHeightComputed.value
+
+    // minHeight is a model so it takes 1 tick to update
+    nextTick(() => {
+      if (snapPoints.value[0] === minHeightComputed.value) {
+        snapToPoint(0)
+      }
+    })
+  }
+})
+
 // Lifecycle hook
 onMounted(() => {
   maxHeight.value = windowHeight.value
@@ -262,8 +276,8 @@ defineExpose({ open, close, snapToPoint })
         </div>
 
         <div ref="sheetScroll" class="sheet-scroll" @touchmove="handleSheetScroll">
-          <div ref="sheetContentWrapper">
-            <div class="sheet-content">
+          <div ref="sheetContentWrapper" class="sheet-content-wrapper">
+            <div ref="sheetContent" class="sheet-content">
               <slot></slot>
             </div>
           </div>
@@ -352,6 +366,10 @@ defineExpose({ open, close, snapToPoint })
   flex-grow: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.sheet-content-wrapper {
+  height: 100%;
 }
 
 .sheet-content {

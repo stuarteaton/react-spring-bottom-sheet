@@ -40,17 +40,29 @@ const snapToPoint = (index: number) => {
       <button type="button" @click="snapToPoint(0)">Bottom</button>
     </div>
     <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
+    <details>
+      <summary>Epcot Center</summary>
+      <p>
+        Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions, award-winning fireworks
+        and seasonal special events.
+      </p>
+      <p>
+        Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions, award-winning fireworks
+        and seasonal special events.
+      </p>
+      <p>
+        Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions, award-winning fireworks
+        and seasonal special events.
+      </p>
+      <p>
+        Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions, award-winning fireworks
+        and seasonal special events.
+      </p>
+      <p>
+        Epcot is a theme park at Walt Disney World Resort featuring exciting attractions, international pavilions, award-winning fireworks
+        and seasonal special events.
+      </p>
+    </details>
     <template #footer>
       <button type="button" @click="close">Close bottom sheet</button>
     </template>
