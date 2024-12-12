@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
-import { rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
+import { Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useElementStyle, useElementTransform } from '@vueuse/motion'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
@@ -106,47 +106,49 @@ const snapToPoint = (index: number) => {
   style.height = height.value
 }
 
+const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
+  if (!sheet.value) return
+
+  if (translateY.value === 0) {
+    height.value -= delta[1]
+  }
+
+  if (height.value <= minSnap.value) {
+    height.value = minSnap.value
+
+    translateY.value += delta[1]
+    translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
+
+    transform.translateY = props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+  }
+
+  sheet.value.style.transition = ''
+  style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25)
+}
+
+const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
+  if (!sheet.value) return
+
+  translateY.value = props.canSwipeClose
+    ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
+    : 0
+  transform.translateY = translateY.value
+
+  if (translateY.value === height.value) {
+    translateY.value = 0
+    close()
+  }
+
+  sheet.value.style.transition = 'all 250ms ease-in-out'
+  height.value = snapPoints.value[closestSnapPoint.value]
+  style.height = height.value
+}
+
 // Header drag gesture
 useGesture(
   {
-    onDrag: ({ delta }) => {
-      if (!sheet.value) return
-
-      if (translateY.value === 0) {
-        height.value -= delta[1]
-      }
-
-      if (height.value <= minSnap.value) {
-        height.value = minSnap.value
-
-        translateY.value += delta[1]
-        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
-
-        transform.translateY = props.canSwipeClose
-          ? translateY.value
-          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
-      }
-
-      sheet.value.style.transition = ''
-      style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25)
-    },
-    onDragEnd: () => {
-      if (!sheet.value) return
-
-      translateY.value = props.canSwipeClose
-        ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
-        : 0
-      transform.translateY = translateY.value
-
-      if (translateY.value === height.value) {
-        translateY.value = 0
-        close()
-      }
-
-      sheet.value.style.transition = 'all 250ms ease-in-out'
-      height.value = snapPoints.value[closestSnapPoint.value]
-      style.height = height.value
-    },
+    onDrag: handleDrag,
+    onDragEnd: handleDragEnd,
   },
   {
     domTarget: sheetHeader,
@@ -154,88 +156,89 @@ useGesture(
   },
 )
 
-// Content wrapper drag gesture
-if (props.expandOnContentDrag) {
-  useGesture(
-    {
-      onDragStart: ({ direction }) => {
-        const isAtTop = sheetScroll.value!.scrollTop === 0
-        const isDraggingDown = direction[1] > 0
-        const hasSingleSnapPoint = snapPoints.value.length === 1
+useGesture(
+  {
+    onDrag: handleDrag,
+    onDragEnd: handleDragEnd,
+  },
+  {
+    domTarget: sheetFooter,
+    drag: { filterTaps: true },
+  },
+)
 
-        if (hasSingleSnapPoint) {
-          if (translateY.value === 0 && isAtTop) {
-            preventScroll.value = isDraggingDown
-          }
-        } else {
-          if (height.value === maxSnap.value && isAtTop) {
-            preventScroll.value = isDraggingDown
-          }
+useGesture(
+  {
+    onDragStart: ({ direction }) => {
+      const isAtTop = sheetScroll.value!.scrollTop === 0
+      const isDraggingDown = direction[1] > 0
+      const hasSingleSnapPoint = snapPoints.value.length === 1
+
+      if (hasSingleSnapPoint) {
+        if (translateY.value === 0 && isAtTop) {
+          preventScroll.value = isDraggingDown
         }
-      },
-      onDrag: ({ delta }) => {
-        if (!sheet.value) return
-
-        if (translateY.value === 0 && preventScroll.value) {
-          height.value -= delta[1]
-        }
-
-        if (height.value <= minSnap.value) {
-          height.value = minSnap.value
-
-          if (preventScroll.value) {
-            translateY.value += delta[1]
-          }
-
-          translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
-
-          transform.translateY = props.canSwipeClose
-            ? translateY.value
-            : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+      } else {
+        if (props.expandOnContentDrag && height.value !== maxSnap.value) {
+          preventScroll.value = true
         }
 
-        if (height.value > maxSnap.value) {
-          height.value = maxSnap.value
+        if (height.value === maxSnap.value && isAtTop) {
+          preventScroll.value = isDraggingDown
         }
-
-        const isAtTop = sheetScroll.value!.scrollTop === 0
-        if (snapPoints.value.length === 1) {
-          if (delta[1] < 0 && translateY.value === 0 && isAtTop) {
-            preventScroll.value = false
-          }
-        } else {
-          if (height.value === maxSnap.value) {
-            preventScroll.value = false
-          }
-        }
-
-        sheet.value.style.transition = ''
-        style.height = height.value
-      },
-      onDragEnd: () => {
-        if (!sheet.value) return
-
-        translateY.value = props.canSwipeClose
-          ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
-          : 0
-        transform.translateY = translateY.value
-
-        if (translateY.value === height.value) {
-          translateY.value = 0
-          close()
-        }
-
-        sheet.value.style.transition = 'all 250ms ease-in-out'
-        height.value = snapPoints.value[closestSnapPoint.value]
-        style.height = height.value
-      },
+      }
     },
-    {
-      domTarget: sheetContentWrapper,
-      drag: { filterTaps: true },
+    onDrag: ({ delta }) => {
+      if (!props.expandOnContentDrag) {
+        preventScroll.value = false
+        return
+      }
+
+      if (!sheet.value) return
+
+      if (translateY.value === 0 && preventScroll.value && props.expandOnContentDrag) {
+        height.value -= delta[1]
+      }
+
+      if (height.value <= minSnap.value) {
+        height.value = minSnap.value
+
+        if (preventScroll.value && props.expandOnContentDrag) {
+          translateY.value += delta[1]
+        }
+
+        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
+
+        transform.translateY = props.canSwipeClose
+          ? translateY.value
+          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+      }
+
+      if (height.value > maxSnap.value) {
+        height.value = maxSnap.value
+      }
+
+      const isAtTop = sheetScroll.value!.scrollTop === 0
+      if (snapPoints.value.length === 1) {
+        if (delta[1] < 0 && translateY.value === 0 && isAtTop) {
+          preventScroll.value = false
+        }
+      } else {
+        if (height.value === maxSnap.value) {
+          preventScroll.value = false
+        }
+      }
+
+      sheet.value.style.transition = ''
+      style.height = height.value
     },
-  )
-}
+    onDragEnd: handleDragEnd,
+  },
+  {
+    domTarget: sheetContentWrapper,
+    drag: { filterTaps: true },
+  },
+)
 
 watch(minHeightComputed, () => {
   if (snapPoints.value.length === 1) {

@@ -7,6 +7,8 @@ const myBottomSheet = useTemplateRef<ComponentExposed<typeof BottomSheet>>('myBo
 const maxHeight = ref(0)
 const minHeight = ref(0)
 
+const expandOnContentDrag = ref(true)
+
 const open = () => {
   myBottomSheet.value?.open()
 }
@@ -28,7 +30,7 @@ const snapToPoint = (index: number) => {
     v-model:min-height="minHeight"
     :can-overlay-close="true"
     :can-swipe-close="true"
-    :expandOnContentDrag="true"
+    :expandOnContentDrag="expandOnContentDrag"
     :snap-points="[maxHeight / 3, maxHeight / 2, maxHeight]"
   >
     <template #header>
@@ -39,6 +41,14 @@ const snapToPoint = (index: number) => {
       <button type="button" @click="snapToPoint(1)">Middle</button>
       <button type="button" @click="snapToPoint(0)">Bottom</button>
     </div>
+    <button type="button" @click="expandOnContentDrag = !expandOnContentDrag">
+      {{ expandOnContentDrag ? 'Enable' : 'Disable' }} expand on content drag
+    </button>
+    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
+    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
+    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
+    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
+    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
     <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
     <details>
       <summary>Epcot Center</summary>
@@ -84,6 +94,7 @@ body {
 .button-group {
   display: flex;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .button-group button {
