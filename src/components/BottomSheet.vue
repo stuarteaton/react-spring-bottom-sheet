@@ -1,19 +1,22 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
-import { Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
+import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useElementStyle, useElementTransform } from '@vueuse/motion'
+import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
 interface IProps {
   snapPoints: number[]
   defaultBreakpoint?: number
+  blocking?: boolean
   canSwipeClose?: boolean
   canOverlayClose?: boolean
   expandOnContentDrag?: boolean
 }
 
 const props = withDefaults(defineProps<IProps>(), {
+  blocking: true,
   canSwipeClose: true,
   canOverlayClose: true,
   expandOnContentDrag: true,
@@ -31,9 +34,9 @@ const sheetContentWrapper = ref<HTMLElement | null>(null)
 const sheetContent = ref<HTMLElement | null>(null)
 
 // State management refs
-const preventScroll = ref(props.expandOnContentDrag)
 const overlay = ref<HTMLElement | null>(null)
 const showSheet = ref(false)
+const preventScroll = ref(props.expandOnContentDrag)
 
 // Element dimensions
 const { height: windowHeight } = useWindowSize()
@@ -41,6 +44,8 @@ const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
+
+const { activate, deactivate } = useFocusTrap([sheet, overlay])
 
 // Computed minimum height
 const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
@@ -57,31 +62,43 @@ const translateY = ref(0)
 const { snapPoints: propSnapPoints } = toRefs(props)
 const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(propSnapPoints, height)
 
+const transition = 'height 250ms ease-in-out, transform 250ms ease-in-out, visibility 250ms ease-in-out'
+
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') close()
 }
 
 // Open sheet method
-const open = () => {
+const open = async () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 250ms ease-in-out'
+  sheet.value.style.transition = transition
   height.value = props.defaultBreakpoint ?? minSnap.value
   style.height = height.value
   transform.translateY = 0
   showSheet.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
+
+  if (props.blocking) {
+    setTimeout(() => {
+      activate()
+    }, 150)
+  }
 }
 
 // Close sheet method
 const close = () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 250ms ease-in-out'
+  sheet.value.style.transition = transition
   transform.translateY = sheetHeight.value
   showSheet.value = false
+
+  if (props.blocking) {
+    deactivate()
+  }
 
   window.removeEventListener('keydown', handleEscapeKey)
 }
@@ -101,7 +118,7 @@ function handleSheetScroll(event: TouchEvent) {
 const snapToPoint = (index: number) => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = 'all 250ms ease-in-out'
+  sheet.value.style.transition = transition
   height.value = snapPoints.value[index]
   style.height = height.value
 }
@@ -139,12 +156,11 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
     close()
   }
 
-  sheet.value.style.transition = 'all 250ms ease-in-out'
+  sheet.value.style.transition = transition
   height.value = snapPoints.value[closestSnapPoint.value]
   style.height = height.value
 }
 
-// Header drag gesture
 useGesture(
   {
     onDrag: handleDrag,
@@ -269,11 +285,11 @@ defineExpose({ open, close, snapToPoint })
 
 <template>
   <Teleport to="body">
-    <div class="sheet-container" tabindex="-1" :aria-hidden="!showSheet">
+    <div class="sheet-container">
       <Transition name="fade">
-        <div v-show="showSheet" ref="overlay" class="sheet-overlay" @click="overlayClick()" />
+        <div ref="overlay" class="sheet-overlay" v-show="showSheet && blocking" @click="overlayClick()" />
       </Transition>
-      <div ref="sheet" :class="showSheet && 'sheet-show'" class="sheet">
+      <div ref="sheet" :class="{ 'sheet-show': showSheet, 'sheet-shadow': !blocking }" class="sheet" tabindex="-1" aria-modal="true">
         <div ref="sheetHeader" class="sheet-header">
           <slot name="header"></slot>
         </div>
@@ -303,6 +319,12 @@ defineExpose({ open, close, snapToPoint })
   user-select: none;
   will-change: opacity;
   z-index: -1;
+}
+
+.sheet-shadow {
+  box-shadow:
+    0 -5px 60px 0 rgba(38, 89, 115, 0.2),
+    0 -1px 0 rgba(38, 89, 115, 0.06);
 }
 
 .sheet-container {
@@ -381,24 +403,6 @@ defineExpose({ open, close, snapToPoint })
   user-select: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  .sheet {
-    background-color: #242424;
-  }
-
-  .sheet-header {
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16);
-  }
-
-  .sheet-header:before {
-    background-color: rgba(255, 255, 255, 0.38);
-  }
-
-  .sheet-footer {
-    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.16);
-  }
-}
-
 .sheet-header:empty {
   box-shadow: none;
   padding: 12px 16px 8px 16px;
@@ -416,5 +420,29 @@ defineExpose({ open, close, snapToPoint })
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sheet {
+    background-color: #242424;
+  }
+
+  .sheet-header {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .sheet-header:before {
+    background-color: rgba(255, 255, 255, 0.38);
+  }
+
+  .sheet-footer {
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .sheet-shadow {
+    box-shadow:
+      0 -5px 60px 0 rgba(255, 255, 255, 0.06),
+      0 -1px 0 rgba(255, 255, 255, 0.09);
+  }
 }
 </style>
