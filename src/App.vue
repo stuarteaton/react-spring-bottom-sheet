@@ -26,13 +26,13 @@ const snapToPoint = (index: number) => {
   <button class="btn btn-primary" type="button" @click="open">Open bottom sheet</button>
   <BottomSheet
     ref="myBottomSheet"
-    v-model:max-height="maxHeight"
-    v-model:min-height="minHeight"
-    :blocking="false"
+    :blocking="true"
     :can-overlay-close="true"
     :can-swipe-close="true"
     :expandOnContentDrag="expandOnContentDrag"
-    :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight]"
+    :snap-points="[minHeight]"
+    @min-height="(n) => (minHeight = n)"
+    @max-height="(n) => (maxHeight = n)"
   >
     <template #header>
       <h1 style="font-size: 24px; margin: 0; text-align: center">Header</h1>

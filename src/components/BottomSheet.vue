@@ -22,8 +22,12 @@ const props = withDefaults(defineProps<IProps>(), {
   expandOnContentDrag: true,
 })
 
-const maxHeight = defineModel<number>('maxHeight')
-const minHeight = defineModel<number>('minHeight')
+const emit = defineEmits<{
+  (e: 'closed'): void
+  (e: 'opened'): void
+  (e: 'minHeight', minSheetHeight: number): void
+  (e: 'maxHeight', maxSheetHeight: number): void
+}>()
 
 // Refs for DOM elements
 const sheet = ref<HTMLElement | null>(null)
@@ -80,6 +84,7 @@ const open = async () => {
   showSheet.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
+  emit('closed')
 
   if (props.blocking) {
     setTimeout(() => {
@@ -101,6 +106,10 @@ const close = () => {
   }
 
   window.removeEventListener('keydown', handleEscapeKey)
+
+  setTimeout(() => {
+    emit('closed')
+  }, 250)
 }
 
 // Overlay click handler
@@ -258,8 +267,6 @@ useGesture(
 
 watch(minHeightComputed, () => {
   if (snapPoints.value.length === 1) {
-    minHeight.value = minHeightComputed.value
-
     // minHeight is a model so it takes 1 tick to update
     nextTick(() => {
       if (snapPoints.value[0] === minHeightComputed.value) {
@@ -271,12 +278,12 @@ watch(minHeightComputed, () => {
 
 // Lifecycle hook
 onMounted(() => {
-  maxHeight.value = windowHeight.value
-  minHeight.value = minHeightComputed.value
-
   height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
   style.height = height.value
   transform.translateY = height.value
+
+  emit('minHeight', minHeightComputed.value)
+  emit('maxHeight', windowHeight.value)
 })
 
 // Expose methods
