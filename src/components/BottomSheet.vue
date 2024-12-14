@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
+import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
-import { useMotionProperties, useMotionTransitions, useMotionControls } from '@vueuse/motion'
+import { useMotionControls, useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
@@ -313,9 +313,9 @@ defineExpose({ open, close, snapToPoint })
   <Teleport to="body">
     <div class="sheet-container">
       <Transition name="fade">
-        <div ref="overlay" class="sheet-overlay" v-show="showSheet && blocking" @click="overlayClick()" />
+        <div v-show="showSheet && blocking" ref="overlay" class="sheet-overlay" @click="overlayClick()" />
       </Transition>
-      <div ref="sheet" :class="{ 'sheet-show': showSheet, 'sheet-shadow': !blocking }" class="sheet" tabindex="-1" aria-modal="true">
+      <div ref="sheet" :class="{ 'sheet-show': showSheet, 'sheet-shadow': !blocking }" aria-modal="true" class="sheet" tabindex="-1">
         <div ref="sheetHeader" class="sheet-header">
           <slot name="header"></slot>
         </div>
@@ -376,10 +376,10 @@ defineExpose({ open, close, snapToPoint })
   max-height: inherit;
   pointer-events: all;
   position: absolute;
+  transition: visibility 250ms ease-in-out;
   visibility: hidden;
   width: 640px;
   will-change: height;
-  transition: visibility 250ms ease-in-out;
 }
 
 .sheet-show {
