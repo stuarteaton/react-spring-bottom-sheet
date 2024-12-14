@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
-import { useMotionProperties, useMotionTransitions } from '@vueuse/motion'
+import { useMotionProperties, useMotionTransitions, useMotionControls } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
@@ -23,8 +23,9 @@ const props = withDefaults(defineProps<IProps>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'closed'): void
   (e: 'opened'): void
+  (e: 'closed'): void
+  (e: 'ready'): void
   (e: 'minHeight', minSheetHeight: number): void
   (e: 'maxHeight', maxSheetHeight: number): void
 }>()
@@ -56,7 +57,8 @@ const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sh
 
 // Element styling and transforms
 const { motionProperties } = useMotionProperties(sheet)
-const { push, motionValues } = useMotionTransitions()
+const { push, stop, motionValues } = useMotionTransitions()
+const { set, stop: _stopMotion } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
 
 // Height and translation management
 const height = ref<number>(0)
@@ -77,7 +79,10 @@ const open = () => {
 
   height.value = props.defaultBreakpoint ?? minSnap.value
 
-  push('height', height.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  set({
+    height: height.value,
+    y: height.value,
+  })
   push('y', 0, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
   showSheet.value = true
 
@@ -85,7 +90,7 @@ const open = () => {
 
   if (props.blocking) {
     setTimeout(() => {
-      if (motionValues.value.y!.get() === 0) {
+      if (motionValues.value.y!.get() - 0 < 0.1) {
         emit('opened')
         activate()
       }
@@ -106,7 +111,7 @@ const close = () => {
   window.removeEventListener('keydown', handleEscapeKey)
 
   setTimeout(() => {
-    if (motionValues.value.y!.get() === sheetHeight.value) {
+    if (motionValues.value.y!.get() - sheetHeight.value < 0.1) {
       emit('closed')
     }
   }, 250)
@@ -144,22 +149,13 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
     translateY.value += delta[1]
     translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
 
-    push(
-      'y',
-      props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
-      motionProperties,
-      {
-        type: 'tween',
-        bounce: 0,
-        duration: 1,
-      },
-    )
+    set({
+      y: props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+    })
   }
 
-  push('height', rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), motionProperties, {
-    type: 'tween',
-    bounce: 0,
-    duration: 1,
+  set({
+    height: rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25),
   })
 }
 
@@ -248,16 +244,9 @@ useGesture(
 
         translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
 
-        push(
-          'y',
-          props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
-          motionProperties,
-          {
-            type: 'tween',
-            bounce: 0,
-            duration: 1,
-          },
-        )
+        set({
+          y: props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+        })
       }
 
       if (height.value > maxSnap.value) {
@@ -275,10 +264,8 @@ useGesture(
         }
       }
 
-      push('height', height.value, motionProperties, {
-        type: 'tween',
-        bounce: 0,
-        duration: 1,
+      set({
+        height: height.value,
       })
     },
     onDragEnd: handleDragEnd,
@@ -308,8 +295,14 @@ onMounted(() => {
 
   height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
 
-  push('height', height.value, motionProperties, { type: 'inertia', bounce: 0, duration: 0 })
-  push('y', height.value, motionProperties, { type: 'inertia', bounce: 0, duration: 0 })
+  set({
+    height: height.value,
+    y: height.value,
+  })
+
+  nextTick(() => {
+    emit('ready')
+  })
 })
 
 // Expose methods
@@ -348,7 +341,7 @@ defineExpose({ open, close, snapToPoint })
   background-color: rgba(0, 0, 0, 0.5);
   inset: 0;
   pointer-events: auto;
-  position: absolute;
+  position: fixed;
   user-select: none;
   will-change: opacity;
   z-index: -1;
@@ -448,7 +441,7 @@ defineExpose({ open, close, snapToPoint })
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 250ms ease;
 }
 
 .fade-enter-from,
