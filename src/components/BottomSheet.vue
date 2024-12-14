@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, toRefs, watch, nextTick } from 'vue'
 import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
-import { useElementStyle, useElementTransform } from '@vueuse/motion'
+import { useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from '../composables/useSnapPoints'
 
@@ -55,8 +55,8 @@ const { activate, deactivate } = useFocusTrap([sheet, overlay])
 const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
 
 // Element styling and transforms
-const { style } = useElementStyle(sheet)
-const { transform } = useElementTransform(sheet)
+const { motionProperties } = useMotionProperties(sheet)
+const { push, motionValues } = useMotionTransitions()
 
 // Height and translation management
 const height = ref<number>(0)
@@ -66,39 +66,37 @@ const translateY = ref(0)
 const { snapPoints: propSnapPoints } = toRefs(props)
 const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(propSnapPoints, height)
 
-const transition = 'height 250ms ease-in-out, transform 250ms ease-in-out, visibility 250ms ease-in-out'
-
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') close()
 }
 
 // Open sheet method
-const open = async () => {
+const open = () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = transition
   height.value = props.defaultBreakpoint ?? minSnap.value
-  style.height = height.value
-  transform.translateY = 0
+
+  push('height', height.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  push('y', 0, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
   showSheet.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
-  emit('closed')
 
   if (props.blocking) {
     setTimeout(() => {
-      activate()
-    }, 150)
+      if (motionValues.value.y!.get() === 0) {
+        emit('opened')
+        activate()
+      }
+    }, 250)
   }
 }
-
 // Close sheet method
 const close = () => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = transition
-  transform.translateY = sheetHeight.value
+  push('y', sheetHeight.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
   showSheet.value = false
 
   if (props.blocking) {
@@ -108,7 +106,9 @@ const close = () => {
   window.removeEventListener('keydown', handleEscapeKey)
 
   setTimeout(() => {
-    emit('closed')
+    if (motionValues.value.y!.get() === sheetHeight.value) {
+      emit('closed')
+    }
   }, 250)
 }
 
@@ -127,9 +127,8 @@ function handleSheetScroll(event: TouchEvent) {
 const snapToPoint = (index: number) => {
   if (!sheet.value) return
 
-  sheet.value.style.transition = transition
   height.value = snapPoints.value[index]
-  style.height = height.value
+  push('height', height.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
 }
 
 const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
@@ -145,11 +144,23 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
     translateY.value += delta[1]
     translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
 
-    transform.translateY = props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+    push(
+      'y',
+      props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+      motionProperties,
+      {
+        type: 'tween',
+        bounce: 0,
+        duration: 1,
+      },
+    )
   }
 
-  sheet.value.style.transition = ''
-  style.height = rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25)
+  push('height', rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), motionProperties, {
+    type: 'tween',
+    bounce: 0,
+    duration: 1,
+  })
 }
 
 const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
@@ -158,16 +169,19 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   translateY.value = props.canSwipeClose
     ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
     : 0
-  transform.translateY = translateY.value
+  push('y', translateY.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
 
   if (translateY.value === height.value) {
     translateY.value = 0
     close()
   }
 
-  sheet.value.style.transition = transition
   height.value = snapPoints.value[closestSnapPoint.value]
-  style.height = height.value
+  push('height', height.value, motionProperties, {
+    type: 'tween',
+    bounce: 0,
+    duration: 250,
+  })
 }
 
 useGesture(
@@ -234,9 +248,16 @@ useGesture(
 
         translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
 
-        transform.translateY = props.canSwipeClose
-          ? translateY.value
-          : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5)
+        push(
+          'y',
+          props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+          motionProperties,
+          {
+            type: 'tween',
+            bounce: 0,
+            duration: 1,
+          },
+        )
       }
 
       if (height.value > maxSnap.value) {
@@ -254,8 +275,11 @@ useGesture(
         }
       }
 
-      sheet.value.style.transition = ''
-      style.height = height.value
+      push('height', height.value, motionProperties, {
+        type: 'tween',
+        bounce: 0,
+        duration: 1,
+      })
     },
     onDragEnd: handleDragEnd,
   },
@@ -266,8 +290,9 @@ useGesture(
 )
 
 watch(minHeightComputed, () => {
+  emit('minHeight', minHeightComputed.value)
+
   if (snapPoints.value.length === 1) {
-    // minHeight is a model so it takes 1 tick to update
     nextTick(() => {
       if (snapPoints.value[0] === minHeightComputed.value) {
         snapToPoint(0)
@@ -278,12 +303,13 @@ watch(minHeightComputed, () => {
 
 // Lifecycle hook
 onMounted(() => {
-  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
-  style.height = height.value
-  transform.translateY = height.value
-
   emit('minHeight', minHeightComputed.value)
   emit('maxHeight', windowHeight.value)
+
+  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
+
+  push('height', height.value, motionProperties, { type: 'inertia', bounce: 0, duration: 0 })
+  push('y', height.value, motionProperties, { type: 'inertia', bounce: 0, duration: 0 })
 })
 
 // Expose methods
@@ -360,6 +386,7 @@ defineExpose({ open, close, snapToPoint })
   visibility: hidden;
   width: 640px;
   will-change: height;
+  transition: visibility 250ms ease-in-out;
 }
 
 .sheet-show {
