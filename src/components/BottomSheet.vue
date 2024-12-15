@@ -378,7 +378,8 @@ defineExpose({ open, close, snapToPoint })
   position: absolute;
   transition: visibility 250ms ease-in-out;
   visibility: hidden;
-  width: 640px;
+  width: 100%;
+  max-width: 640px;
   will-change: height;
 }
 
