@@ -4,7 +4,7 @@ import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useMotionControls, useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
-import { useSnapPoints } from '../composables/useSnapPoints'
+import { useSnapPoints } from '../composables/useSnapPoints.ts'
 
 interface IProps {
   snapPoints: number[]
@@ -58,7 +58,7 @@ const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sh
 // Element styling and transforms
 const { motionProperties } = useMotionProperties(sheet)
 const { push, stop, motionValues } = useMotionTransitions()
-const { set, stop: _stopMotion } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
+const { set } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
 
 // Height and translation management
 const height = ref<number>(0)
@@ -83,7 +83,7 @@ const open = () => {
     height: height.value,
     y: height.value,
   })
-  push('y', 0, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  push('y', 0, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
   showSheet.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
@@ -94,14 +94,14 @@ const open = () => {
         emit('opened')
         activate()
       }
-    }, 250)
+    }, 300)
   }
 }
 // Close sheet method
 const close = () => {
   if (!sheet.value) return
 
-  push('y', sheetHeight.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  push('y', sheetHeight.value, motionProperties, { type: 'tween', bounce: 0, duration: 300 })
   showSheet.value = false
 
   if (props.blocking) {
@@ -114,7 +114,7 @@ const close = () => {
     if (motionValues.value.y!.get() - sheetHeight.value < 0.1) {
       emit('closed')
     }
-  }, 250)
+  }, 300)
 }
 
 // Overlay click handler
@@ -133,7 +133,12 @@ const snapToPoint = (index: number) => {
   if (!sheet.value) return
 
   height.value = snapPoints.value[index]
-  push('height', height.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  push('height', height.value, motionProperties, {
+    type: 'tween',
+    easings: 'easeInOut',
+    bounce: 0,
+    duration: 300,
+  })
 }
 
 const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
@@ -165,7 +170,7 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   translateY.value = props.canSwipeClose
     ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
     : 0
-  push('y', translateY.value, motionProperties, { type: 'tween', bounce: 0, duration: 250 })
+  push('y', translateY.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
 
   if (translateY.value === height.value) {
     translateY.value = 0
@@ -175,8 +180,9 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   height.value = snapPoints.value[closestSnapPoint.value]
   push('height', height.value, motionProperties, {
     type: 'tween',
+    easings: 'easeInOut',
     bounce: 0,
-    duration: 250,
+    duration: 300,
   })
 }
 
@@ -317,19 +323,19 @@ defineExpose({ open, close, snapToPoint })
       </Transition>
       <div ref="sheet" :class="{ 'sheet-show': showSheet, 'sheet-shadow': !blocking }" aria-modal="true" class="sheet" tabindex="-1">
         <div ref="sheetHeader" class="sheet-header">
-          <slot name="header"></slot>
+          <slot name="header" />
         </div>
 
         <div ref="sheetScroll" class="sheet-scroll" @touchmove="handleSheetScroll">
           <div ref="sheetContentWrapper" class="sheet-content-wrapper">
             <div ref="sheetContent" class="sheet-content">
-              <slot></slot>
+              <slot />
             </div>
           </div>
         </div>
 
         <div ref="sheetFooter" class="sheet-footer">
-          <slot name="footer"></slot>
+          <slot name="footer" />
         </div>
       </div>
     </div>
@@ -376,7 +382,7 @@ defineExpose({ open, close, snapToPoint })
   max-height: inherit;
   pointer-events: all;
   position: absolute;
-  transition: visibility 250ms ease-in-out;
+  transition: visibility 300ms ease-in-out;
   visibility: hidden;
   width: 100%;
   max-width: 640px;
@@ -442,7 +448,7 @@ defineExpose({ open, close, snapToPoint })
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 250ms ease;
+  transition: opacity 300ms ease;
 }
 
 .fade-enter-from,

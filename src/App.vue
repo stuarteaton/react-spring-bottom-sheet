@@ -29,7 +29,7 @@ const snapToPoint = (index: number) => {
     :blocking="true"
     :can-overlay-close="true"
     :can-swipe-close="true"
-    :expandOnContentDrag="expandOnContentDrag"
+    :expand-on-content-drag="expandOnContentDrag"
     :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight]"
     @min-height="(n) => (minHeight = n)"
     @max-height="(n) => (maxHeight = n)"
