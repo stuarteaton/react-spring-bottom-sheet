@@ -4,7 +4,7 @@ import { useElementBounding, useWindowSize } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useMotionControls, useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
-import { useSnapPoints } from '../composables/useSnapPoints.ts'
+import { useSnapPoints } from './composables/useSnapPoints.ts'
 
 interface IProps {
   snapPoints: number[]

@@ -1,7 +1,31 @@
+import { resolve } from 'path'
+import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import Dts from 'vite-plugin-dts'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    Vue(),
+    Dts({
+      insertTypesEntry: true,
+      cleanVueFileName: true,
+      tsconfigPath: resolve(__dirname, 'tsconfig.app.json'),
+    }),
+  ],
+  build: {
+    lib: {
+      formats: ['es'],
+      name: 'vue-spring-bottom-sheet',
+      fileName: (_, name) => {
+        return `${name}.mjs`
+      },
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+      },
+      cssFileName: 'style',
+    },
+    rollupOptions: {
+      external: ['vue', '@vueuse/motion', '@vueuse/gesture'],
+    },
+  },
 })

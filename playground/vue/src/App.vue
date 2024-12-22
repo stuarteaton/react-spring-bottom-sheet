@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { ref, useTemplateRef } from 'vue'
-import BottomSheet from './components/BottomSheet.vue'
-import type { ComponentExposed } from 'vue-component-type-helpers'
+import { ref, version } from 'vue'
 
-const myBottomSheet = useTemplateRef<ComponentExposed<typeof BottomSheet>>('myBottomSheet')
+import BottomSheet from 'vue-spring-bottom-sheet'
+import 'vue-spring-bottom-sheet/dist/style.css'
+
+const myBottomSheet = ref<InstanceType<typeof BottomSheet>>()
 const maxHeight = ref(0)
 const minHeight = ref(0)
 
@@ -24,6 +25,7 @@ const snapToPoint = (index: number) => {
 
 <template>
   <button class="btn btn-primary" type="button" @click="open">Open bottom sheet</button>
+  <p>vue js: {{ version }}</p>
   <BottomSheet
     ref="myBottomSheet"
     :blocking="true"
@@ -45,12 +47,6 @@ const snapToPoint = (index: number) => {
     <button type="button" @click="expandOnContentDrag = !expandOnContentDrag">
       {{ expandOnContentDrag ? 'Enable' : 'Disable' }} expand on content drag
     </button>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
-    <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur sagittis, nunc</p>
     <details>
       <summary>Epcot Center</summary>
       <p>
