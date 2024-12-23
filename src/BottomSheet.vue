@@ -7,7 +7,7 @@ import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints.ts'
 
 interface IProps {
-  snapPoints: number[]
+  snapPoints?: number[]
   defaultBreakpoint?: number
   blocking?: boolean
   canSwipeClose?: boolean
@@ -66,7 +66,8 @@ const translateY = ref(0)
 
 // Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
-const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(propSnapPoints, height)
+const snapPointsRef = computed(() => propSnapPoints.value ?? [minHeightComputed.value])
+const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(snapPointsRef, height)
 
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
@@ -394,6 +395,7 @@ defineExpose({ open, close, snapToPoint })
 }
 
 .sheet-header {
+  z-index: 1;
   box-shadow: 0 1px 0 rgba(46, 59, 66, 0.125);
   flex-shrink: 0;
   padding: 20px 16px 8px 16px;
