@@ -135,10 +135,10 @@ function handleSheetScroll(event: TouchEvent) {
   }
 }
 
-const snapToPoint = (index: number) => {
+const snapToPoint = (snapPoint: number) => {
   if (!sheet.value) return
 
-  height.value = snapPoints.value[index]
+  height.value = snapPoint
   push('height', height.value, motionProperties, {
     type: 'tween',
     easings: 'easeInOut',
