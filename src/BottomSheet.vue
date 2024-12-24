@@ -322,7 +322,7 @@ defineExpose({ open, close, snapToPoint })
       <Transition name="fade">
         <div v-show="showSheet && blocking" ref="backdrop" data-vsbs-backdrop @click="backdropClick()" />
       </Transition>
-      <div ref="sheet" :class="{ 'sheet-show': showSheet }" data-vsbs-sheet :data-vsbs-shadow="!blocking" aria-modal="true" tabindex="-1">
+      <div ref="sheet" :data-vsbs-sheet-show="showSheet" data-vsbs-sheet :data-vsbs-shadow="!blocking" aria-modal="true" tabindex="-1">
         <div ref="sheetHeader" data-vsbs-header>
           <slot name="header" />
         </div>
@@ -382,25 +382,25 @@ defineExpose({ open, close, snapToPoint })
   display: flex;
   flex-direction: column;
   max-height: inherit;
+  max-width: var(--vsbs-max-width, 640px);
   pointer-events: all;
   position: absolute;
   transition: visibility 300ms ease-in-out;
   visibility: hidden;
   width: 100%;
-  max-width: var(--vsbs-max-width, 640px);
   will-change: height;
 }
 
-.sheet-show {
+[data-vsbs-sheet-show='true'] {
   visibility: visible;
 }
 
 [data-vsbs-header] {
-  z-index: 1;
   box-shadow: 0 1px 0 rgba(46, 59, 66, 0.125);
   flex-shrink: 0;
   padding: 20px 16px 8px 16px;
   user-select: none;
+  z-index: 1;
 }
 
 [data-vsbs-header]:before {
