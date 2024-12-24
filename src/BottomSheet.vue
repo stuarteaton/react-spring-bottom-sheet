@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue'
-import { useElementBounding, useWindowSize } from '@vueuse/core'
+import { useElementBounding, useWindowSize, useScrollLock } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useMotionControls, useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
@@ -69,6 +69,8 @@ const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [minHeightComputed.value])
 const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(snapPointsRef, height)
 
+const isWindowScrollLocked = useScrollLock(document.body)
+
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') close()
@@ -86,6 +88,7 @@ const open = () => {
   })
   push('y', 0, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
   showSheet.value = true
+  isWindowScrollLocked.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
 
@@ -103,7 +106,9 @@ const close = () => {
   if (!sheet.value) return
 
   push('y', sheetHeight.value, motionProperties, { type: 'tween', bounce: 0, duration: 300 })
+
   showSheet.value = false
+  isWindowScrollLocked.value = false
 
   if (props.blocking) {
     deactivate()
@@ -179,12 +184,7 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   }
 
   height.value = snapPoints.value[closestSnapPoint.value]
-  push('height', height.value, motionProperties, {
-    type: 'tween',
-    easings: 'easeInOut',
-    bounce: 0,
-    duration: 300,
-  })
+  push('height', height.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
 }
 
 useGesture(
@@ -322,7 +322,7 @@ defineExpose({ open, close, snapToPoint })
       <Transition name="fade">
         <div v-show="showSheet && blocking" ref="backdrop" data-vsbs-backdrop @click="backdropClick()" />
       </Transition>
-      <div ref="sheet" :data-vsbs-sheet-show="showSheet" data-vsbs-sheet :data-vsbs-shadow="!blocking" aria-modal="true" tabindex="-1">
+      <div ref="sheet" :data-vsbs-shadow="!blocking" :data-vsbs-sheet-show="showSheet" aria-modal="true" data-vsbs-sheet tabindex="-1">
         <div ref="sheetHeader" data-vsbs-header>
           <slot name="header" />
         </div>
@@ -351,27 +351,13 @@ defineExpose({ open, close, snapToPoint })
   position: fixed;
   user-select: none;
   will-change: opacity;
-  z-index: -1;
+  z-index: 100;
 }
 
 [data-vsbs-shadow='true'] {
   box-shadow:
     0 -5px 60px 0 rgba(38, 89, 115, 0.2),
     0 -1px 0 rgba(38, 89, 115, 0.06);
-}
-
-[data-vsbs-container] {
-  align-items: center;
-  display: flex;
-  inset: 0;
-  isolation: isolate;
-  justify-content: center;
-  max-height: 100dvh;
-  overflow: hidden;
-  pointer-events: none;
-  position: absolute;
-  width: 100%;
-  z-index: 99999;
 }
 
 [data-vsbs-sheet] {
@@ -381,14 +367,19 @@ defineExpose({ open, close, snapToPoint })
   bottom: 0;
   display: flex;
   flex-direction: column;
+  left: 0;
+  margin-left: auto;
+  margin-right: auto;
   max-height: inherit;
   max-width: var(--vsbs-max-width, 640px);
   pointer-events: all;
-  position: absolute;
+  position: fixed;
+  right: 0;
   transition: visibility 300ms ease-in-out;
   visibility: hidden;
   width: 100%;
   will-change: height;
+  z-index: 100;
 }
 
 [data-vsbs-sheet-show='true'] {
