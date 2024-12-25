@@ -4,10 +4,6 @@
 
 😎 **Modern** and 🚀 **Performant** Bottom Sheet for Vue.js
 
-- **Fluid Transitions:** Snap points ensure smooth and performant animations.
-- **Optimized for Accessibility:** Keyboard support for a seamless user experience.
-- **Adaptable Interaction Models:** Blocking and non-blocking for different use cases.
-
 # Installation
 
 ```
@@ -76,6 +72,20 @@ For Nuxt 3, just wrap component in `<client-only>`
     </template>
   </ClientOnly>
 </template>
+```
+
+## CSS Custom Properties
+
+```css
+:root {
+  --rsbs-backdrop-bg: rgba(0, 0, 0, 0.6);
+  --rsbs-bg: #fff;
+  --rsbs-handle-bg: hsla(0, 0%, 0%, 0.14);
+  --rsbs-max-w: auto;
+  --rsbs-ml: env(safe-area-inset-left);
+  --rsbs-mr: env(safe-area-inset-right);
+  --rsbs-overlay-rounded: 16px;
+}
 ```
 
 ## Props
