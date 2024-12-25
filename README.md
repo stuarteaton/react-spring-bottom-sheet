@@ -90,14 +90,27 @@ For Nuxt 3, just wrap component in `<client-only>`
 
 ## Props
 
-| Prop                | Type     | Description                                                                   | Example                          | Defaults |
-| ------------------- | -------- | ----------------------------------------------------------------------------- | -------------------------------- | -------- |
-| snapPoints          | Number[] | Defines custom snapping positions for the bottom sheet                        | `:snapPoints="[300, 600, 900]"`  | true     |
-| defaultSnapPoint    | Number   | Specifies the default snap point                                              | `:default-snap-point="600"`      | true     |
-| blocking            | Boolean  | Controls whether the bottom sheet blocks interactions with underlying content | `:blocking="true"`               | true     |
-| canSwipeClose       | Boolean  | Enables or disables swipe gestures for closing the sheet                      | `:can-swipe-close="true"`        | true     |
-| canOverlayClose     | Boolean  | Allows tapping the overlay to close the sheet                                 | `:can-overlay-close="true"`      | true     |
-| expandOnContentDrag | Boolean  | Enables expanding the sheet by dragging its content                           | `:expand-on-content-drag="true"` | true     |
+### Prop Definitions
+
+| Prop                | Type     | Description                                                                   | Example                          |
+| ------------------- | -------- | ----------------------------------------------------------------------------- | -------------------------------- |
+| snapPoints          | Number[] | Defines custom snapping positions for the bottom sheet                        | `:snapPoints="[300, 600, 900]"`  |
+| defaultSnapPoint    | Number   | Specifies the default snap point                                              | `:default-snap-point="600"`      |
+| blocking            | Boolean  | Controls whether the bottom sheet blocks interactions with underlying content | `:blocking="true"`               |
+| canSwipeClose       | Boolean  | Enables or disables swipe gestures for closing the sheet                      | `:can-swipe-close="true"`        |
+| canOverlayClose     | Boolean  | Allows tapping the overlay to close the sheet                                 | `:can-overlay-close="true"`      |
+| expandOnContentDrag | Boolean  | Enables expanding the sheet by dragging its content                           | `:expand-on-content-drag="true"` |
+
+### Default Values
+
+| Prop                | Default                    |
+| ------------------- | -------------------------- |
+| snapPoints          | `minHeight`                |
+| defaultSnapPoint    | `minHeight / minSnapPoint` |
+| blocking            | `true`                     |
+| canSwipeClose       | `true`                     |
+| canOverlayClose     | `true`                     |
+| expandOnContentDrag | `true`                     |
 
 ## Exposed methods
 
