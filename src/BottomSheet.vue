@@ -166,7 +166,7 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
   }
 
   set({
-    height: height.value >= windowHeight.value ? windowHeight.value : rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25),
+    height: Math.min(Math.max(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), 0), windowHeight.value),
   })
 }
 
