@@ -289,7 +289,7 @@ watch(minHeightComputed, () => {
   if (snapPoints.value.length === 1) {
     nextTick(() => {
       if (snapPoints.value[0] === minHeightComputed.value) {
-        snapToPoint(0)
+        snapToPoint(minHeightComputed.value)
       }
     })
   }
