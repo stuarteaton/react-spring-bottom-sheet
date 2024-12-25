@@ -24,19 +24,19 @@ import VueBottomSheet from '@douxcode/vue-bottom-sheet'
 import '@douxcode/vue-bottom-sheet/dist/style.css'
 import { ref } from 'vue'
 
-const myBottomSheet = ref(null)
+const bottomSheet = ref(null)
 
 const open = () => {
-  myBottomSheet.value.open()
+  bottomSheet.value.open()
 }
 
 const close = () => {
-  myBottomSheet.value.close()
+  bottomSheet.value.close()
 }
 </script>
 
 <template>
-  <BottomSheet ref="myBottomSheet"> Your awesome content </BottomSheet>
+  <BottomSheet ref="bottomSheet"> Your awesome content </BottomSheet>
 </template>
 ```
 
@@ -48,19 +48,19 @@ import VueBottomSheet from '@douxcode/vue-bottom-sheet'
 import '@douxcode/vue-bottom-sheet/dist/style.css'
 import { ref } from 'vue'
 
-const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
+const bottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
 
 const open = () => {
-  myBottomSheet.value.open()
+  bottomSheet.value.open()
 }
 
 const close = () => {
-  myBottomSheet.value.close()
+  bottomSheet.value.close()
 }
 </script>
 
 <template>
-  <BottomSheet ref="myBottomSheet"> Your content </BottomSheet>
+  <BottomSheet ref="bottomSheet"> Your content </BottomSheet>
 </template>
 ```
 
@@ -72,7 +72,7 @@ For Nuxt 3, just wrap component in `<client-only>`
 <template>
   <ClientOnly>
     <template>
-      <BottomSheet ref="myBottomSheet"> Your awesome content </BottomSheet>
+      <BottomSheet ref="bottomSheet"> Your awesome content </BottomSheet>
     </template>
   </ClientOnly>
 </template>
@@ -80,22 +80,24 @@ For Nuxt 3, just wrap component in `<client-only>`
 
 ## Props
 
-| Prop                | Type    | Description                                                                      | Example                                 | Defaults  |
-| ------------------- | ------- | -------------------------------------------------------------------------------- | --------------------------------------- | --------- |
-| snapPoints          | Number  | Define custom snapping positions for the bottom sheet                            | `:default-breakpoint="[300, 600, 900]"` | true      |
-| defaultBreakpoint   | Number  | Specify the default breakpoint                                                   | `:default-breakpoint="600"`             | true      |
-| blocking            | Boolean | Control whether the bottom sheet blocks interactions with the underlying content | `:blocking="true"`                      | true      |
-| canSwipeClose       | Boolean | Enable or disable swiping gestures to close the sheet                            | `:can-swipe-close="true"`               | true      |
-| canOverlayClose     | Boolean | Allow tapping on overlay to close it                                             | `:can-overlay-close="false"`            | true      |
-| expandOnContentDrag | Boolean | Enable expanding the sheet by dragging its content                               | `:expand-on-content-drag="#0000004D"`   | #0000004D |
+| Prop                | Type     | Description                                                                      | Example                          | Defaults  |
+| ------------------- | -------- | -------------------------------------------------------------------------------- | -------------------------------- | --------- |
+| snapPoints          | Number[] | Define custom snapping positions for the bottom sheet                            | `:snapPoints="[300, 600, 900]"`  | true      |
+| defaultSnapPoint    | Number   | Specify the default breakpoint                                                   | `:default-snap-point="600"`      | true      |
+| blocking            | Boolean  | Control whether the bottom sheet blocks interactions with the underlying content | `:blocking="true"`               | true      |
+| canSwipeClose       | Boolean  | Enable or disable swiping gestures to close the sheet                            | `:can-swipe-close="true"`        | true      |
+| canOverlayClose     | Boolean  | Allow tapping on overlay to close it                                             | `:can-overlay-close="true"`      | true      |
+| expandOnContentDrag | Boolean  | Enable expanding the sheet by dragging its content                               | `:expand-on-content-drag="true"` | #0000004D |
 
 ## Exposed methods
 
-| Method      | Description                                                              | Example                             |
-| ----------- | ------------------------------------------------------------------------ | ----------------------------------- |
-| snapToPoint | Fire when card component is opened                                       | `myBottomSheet.value.snapToPoint()` |
-| open        | Fires when min-height of sheet has changed and passes it as an argument  | `myBottomSheet.value.open()`        |
-| close       | Fires when max-height of window has changed and passes it as an argument | `myBottomSheet.value.close()`       |
+Assuming there is `const bottomSheet = ref()`
+
+| Method      | Description                                        | Example                              |
+| ----------- | -------------------------------------------------- | ------------------------------------ |
+| snapToPoint | Exposed method for snapping component to the point | `bottomSheet.value.snapToPoint(300)` |
+| open        | Exposed method for opening component               | `bottomSheet.value.open()`           |
+| close       | Exposed method for closing component               | `bottomSheet.value.close()`          |
 
 ## Events
 
@@ -103,8 +105,8 @@ For Nuxt 3, just wrap component in `<client-only>`
 | ---------- | ------------------------------------------------------------------------ | ------------------------- |
 | min-height | Fires when min-height of sheet has changed and passes it as an argument  | `@min-height="(n) => {}"` |
 | max-height | Fires when max-height of window has changed and passes it as an argument | `@max-height="(n) => {}"` |
-| opened     | Fire when card component is opened                                       | `@opened="() => {}"`      |
-| closed     | Fire when card component is closed                                       | `@closed="() => {}"`      |
+| opened     | Fire when component is opened                                            | `@opened="() => {}"`      |
+| closed     | Fire when component is closed                                            | `@closed="() => {}"`      |
 
 [@vueuse/gesture]: https://gesture.vueuse.org/
 [@vueuse/motion]: https://motion.vueuse.org/
