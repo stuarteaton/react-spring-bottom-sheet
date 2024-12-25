@@ -1,6 +1,6 @@
 {
   "name": "@douxcode/vue-spring-bottom-sheet",
-  "description": "😎 Modern and 🚀 Performant Bottom Sheet for Vue.js",
+  "description": "Modern and Performant Bottom Sheet for Vue.js",
   "keywords": [
     "animation",
     "bottom-drawer",
@@ -27,8 +27,12 @@
     "type": "git",
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet.git"
   },
+  "homepage": "https://github.com/megaarmos/vue-spring-bottom-sheet",
+  "bugs": {
+    "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
+  },
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "exports": {
     ".": {
