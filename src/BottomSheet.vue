@@ -26,6 +26,8 @@ const emit = defineEmits<{
   (e: 'opened'): void
   (e: 'closed'): void
   (e: 'ready'): void
+  (e: 'dragging-up'): void
+  (e: 'dragging-down'): void
   (e: 'minHeight', minSheetHeight: number): void
   (e: 'maxHeight', maxSheetHeight: number): void
 }>()
@@ -147,7 +149,7 @@ const snapToPoint = (snapPoint: number) => {
   })
 }
 
-const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
+const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta, direction }) => {
   if (!sheet.value) return
 
   if (translateY.value === 0) {
@@ -168,6 +170,12 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta }) => {
   set({
     height: Math.min(Math.max(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), 0), windowHeight.value),
   })
+
+  if (direction[1] > 0) {
+    emit('dragging-down')
+  } else if (direction[1] < 0) {
+    emit('dragging-up')
+  }
 }
 
 const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {

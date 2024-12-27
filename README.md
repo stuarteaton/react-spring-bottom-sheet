@@ -124,12 +124,13 @@ Assuming there is `const bottomSheet = ref()`
 
 ## Events
 
-| Event      | Description                                                                           | Example                   |
-| ---------- | ------------------------------------------------------------------------------------- | ------------------------- |
-| min-height | Fires when the minimum height of the sheet changes. Passes the value as an argument.  | `@min-height="(n) => {}"` |
-| max-height | Fires when the maximum height of the window changes. Passes the value as an argument. | `@max-height="(n) => {}"` |
-| opened     | Fires when the bottom sheet is opened                                                 | `@opened="() => {}"`      |
-| closed     | Fires when the bottom sheet is closed                                                 | `@closed="() => {}"`      |
+| Event         | Description                                                                          | Example                     |
+| ------------- | ------------------------------------------------------------------------------------ | --------------------------- |
+| min-height    | Fires when the minimum height of the sheet changes. Passes the value as an argument. | `@min-height="(n) => {}"`   |
+| dragging-up   | Fires when the bottom sheet is being dragged up                                      | `@dragging-up="() => {}"`   |
+| dragging-down | Fires when the bottom sheet is being dragged down                                    | `@dragging-down="() => {}"` |
+| opened        | Fires when the bottom sheet is opened                                                | `@opened="() => {}"`        |
+| closed        | Fires when the bottom sheet is closed                                                | `@closed="() => {}"`        |
 
 ## Acknowledgments
 
