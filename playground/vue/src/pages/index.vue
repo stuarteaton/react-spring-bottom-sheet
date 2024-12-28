@@ -21,7 +21,7 @@ const close = () => {
     <p>vue js: {{ version }}</p>
   </div>
   <BottomSheet ref="myBottomSheet">
-    <p v-for="i in 3" :key="i">
+    <p v-for="i in 5" :key="i">
       Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
       reprehenderit eveniet neque ad delectus fugit!
     </p>

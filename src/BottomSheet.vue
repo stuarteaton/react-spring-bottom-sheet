@@ -82,7 +82,7 @@ const handleEscapeKey = (e: KeyboardEvent) => {
 const open = () => {
   if (!sheet.value) return
 
-  height.value = props.defaultBreakpoint ?? minSnap.value
+  height.value = Math.min(props.defaultBreakpoint ?? minSnap.value, windowHeight.value)
 
   set({
     height: height.value,
@@ -191,7 +191,8 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
     close()
   }
 
-  height.value = snapPoints.value[closestSnapPoint.value]
+  height.value = Math.min(snapPoints.value[closestSnapPoint.value], windowHeight.value)
+
   push('height', height.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
 }
 
@@ -238,7 +239,7 @@ useGesture(
         }
       }
     },
-    onDrag: ({ delta }) => {
+    onDrag: ({ delta, direction }) => {
       if (!props.expandOnContentDrag) {
         preventScroll.value = false
         return
@@ -268,6 +269,8 @@ useGesture(
         height.value = maxSnap.value
       }
 
+      height.value = Math.min(height.value, windowHeight.value)
+
       const isAtTop = sheetScroll.value!.scrollTop === 0
       if (snapPoints.value.length === 1) {
         if (delta[1] < 0 && translateY.value === 0 && isAtTop) {
@@ -282,6 +285,12 @@ useGesture(
       set({
         height: height.value,
       })
+
+      if (direction[1] > 0) {
+        emit('dragging-down')
+      } else if (direction[1] < 0) {
+        emit('dragging-up')
+      }
     },
     onDragEnd: handleDragEnd,
   },
@@ -297,7 +306,7 @@ watch(minHeightComputed, () => {
   if (snapPoints.value.length === 1) {
     nextTick(() => {
       if (snapPoints.value[0] === minHeightComputed.value) {
-        snapToPoint(minHeightComputed.value)
+        snapToPoint(Math.min(minHeightComputed.value, windowHeight.value))
       }
     })
   }
