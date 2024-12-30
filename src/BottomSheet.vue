@@ -167,8 +167,10 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta, directio
     })
   }
 
+  height.value = Math.min(height.value, windowHeight.value)
+
   set({
-    height: Math.min(Math.max(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), 0), windowHeight.value),
+    height: Math.max(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), 0),
   })
 
   if (direction[1] > 0) {
