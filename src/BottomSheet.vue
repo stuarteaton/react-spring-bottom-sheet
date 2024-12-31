@@ -374,9 +374,7 @@ defineExpose({ open, close, snapToPoint })
 }
 
 [data-vsbs-shadow='true'] {
-  box-shadow:
-    0 -5px 60px 0 rgba(38, 89, 115, 0.2),
-    0 -1px 0 rgba(38, 89, 115, 0.06);
+  box-shadow: 0 -5px 60px 0 var(--vsbs-shadow-color, hsla(0, 0%, 35%, 0.2));
 }
 
 [data-vsbs-sheet] {
@@ -406,9 +404,9 @@ defineExpose({ open, close, snapToPoint })
 }
 
 [data-vsbs-header] {
-  box-shadow: 0 1px 0 rgba(46, 59, 66, 0.125);
+  box-shadow: 0 1px 0 var(--vsbs-border-color, rgba(46, 59, 66, 0.125));
   flex-shrink: 0;
-  padding: 20px 16px 8px 16px;
+  padding: 20px var(--vsbs-padding-x, 16px) 8px;
   user-select: none;
   z-index: 1;
 }
@@ -428,14 +426,14 @@ defineExpose({ open, close, snapToPoint })
 
 [data-vsbs-header]:empty {
   box-shadow: none;
-  padding: 12px 16px 8px 16px;
+  padding: 12px var(--vsbs-padding-x, 16px) 8px;
 }
 
 [data-vsbs-footer] {
-  box-shadow: 0 -1px 0 rgba(46, 59, 66, 0.125);
+  box-shadow: 0 -1px 0 var(--vsbs-border-color, rgba(46, 59, 66, 0.125));
   flex-grow: 0;
   flex-shrink: 0;
-  padding: 16px;
+  padding: 16px var(--vsbs-padding-x, 16px);
   user-select: none;
 }
 
@@ -455,7 +453,7 @@ defineExpose({ open, close, snapToPoint })
 
 [data-vsbs-content] {
   display: grid;
-  padding: 1vh 3vh 3vh;
+  padding: 1vh var(--vsbs-padding-x, 16px);
   user-select: none;
 }
 

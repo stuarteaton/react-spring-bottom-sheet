@@ -62,14 +62,12 @@ const close = () => {
 
 ## Usage in Nuxt 3
 
-For Nuxt 3, just wrap component in `<client-only>`
+For Nuxt 3, just wrap component in `<ClientOnly>`
 
 ```vue
 <template>
   <ClientOnly>
-    <template>
-      <BottomSheet ref="bottomSheet"> Your awesome content </BottomSheet>
-    </template>
+    <BottomSheet ref="bottomSheet"> Your awesome content </BottomSheet>
   </ClientOnly>
 </template>
 ```
@@ -77,15 +75,14 @@ For Nuxt 3, just wrap component in `<client-only>`
 ## CSS Custom Properties
 
 ```css
-:root {
-  --rsbs-backdrop-bg: rgba(0, 0, 0, 0.6);
-  --rsbs-bg: #fff;
-  --rsbs-handle-bg: hsla(0, 0%, 0%, 0.14);
-  --rsbs-max-w: auto;
-  --rsbs-ml: env(safe-area-inset-left);
-  --rsbs-mr: env(safe-area-inset-right);
-  --rsbs-overlay-rounded: 16px;
-}
+--vsbs-backdrop-bg: rgba(0, 0, 0, 0.5);
+--vsbs-shadow-color: hsla(0, 0%, 35%, 0.2);
+--vsbs-background: #fff;
+--vsbs-border-radius: 16px;
+--vsbs-max-width: 640px;
+--vsbs-border-color: rgba(46, 59, 66, 0.125);
+--vsbs-padding-x: 16px;
+--vsbs-handle-background: rgba(0, 0, 0, 0.28);
 ```
 
 ## Props
