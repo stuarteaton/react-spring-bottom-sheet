@@ -4,31 +4,31 @@ import { ref, version } from 'vue'
 import BottomSheet from 'vue-spring-bottom-sheet'
 import 'vue-spring-bottom-sheet/dist/style.css'
 
-const myBottomSheet = ref<InstanceType<typeof BottomSheet>>()
+const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 const maxHeight = ref(0)
 const minHeight = ref(0)
 
 const expandOnContentDrag = ref(true)
 
 const open = () => {
-  myBottomSheet.value?.open()
+  bottomSheet.value?.open()
 }
 
 const snapToPoint = (snapPoint: number) => {
-  myBottomSheet.value?.snapToPoint(snapPoint)
+  bottomSheet.value?.snapToPoint(snapPoint)
 }
 </script>
 
 <template>
   <div class="content">
-    <button class="btn btn-primary" type="button" @click="open">Open bottom sheet</button>
+    <button type="button" @click="open">Open bottom sheet</button>
     <p>vue js: {{ version }}</p>
   </div>
   <BottomSheet
-    ref="myBottomSheet"
+    ref="bottomSheet"
     :blocking="true"
     :can-overlay-close="true"
-    :can-swipe-close="true"
+    :can-swipe-close="false"
     :expand-on-content-drag="expandOnContentDrag"
     :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight]"
     @min-height="(n) => (minHeight = n)"

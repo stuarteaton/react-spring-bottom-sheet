@@ -76,7 +76,7 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 
 ```css
 --vsbs-backdrop-bg: rgba(0, 0, 0, 0.5);
---vsbs-shadow-color: hsla(0, 0%, 35%, 0.2);
+--vsbs-shadow-color: rgba(89, 89, 89, 0.2);
 --vsbs-background: #fff;
 --vsbs-border-radius: 16px;
 --vsbs-max-width: 640px;

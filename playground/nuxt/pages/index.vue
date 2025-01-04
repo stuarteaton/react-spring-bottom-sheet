@@ -4,38 +4,37 @@ import { ref, version } from 'vue'
 import BottomSheet from 'vue-spring-bottom-sheet'
 import 'vue-spring-bottom-sheet/dist/style.css'
 
-const myBottomSheet = ref<InstanceType<typeof BottomSheet>>()
+const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 
 const open = () => {
-  myBottomSheet.value?.open()
+  bottomSheet.value?.open()
 }
 
 const close = () => {
-  myBottomSheet.value?.close()
+  bottomSheet.value?.close()
 }
 </script>
 
 <template>
   <div class="content">
-    <button class="btn btn-primary" type="button" @click="open">Open bottom sheet</button>
+    <button type="button" @click="open">Open bottom sheet</button>
     <p>vue js: {{ version }}</p>
   </div>
   <ClientOnly>
-    <BottomSheet ref="myBottomSheet">
-      <p v-for="i in 3" :key="i">
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
-        reprehenderit eveniet neque ad delectus fugit!
+    <BottomSheet ref="bottomSheet">
+      <p class="mb-4">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias atque error dignissimos impedit iure facilis ipsam sit cum molestias,
+        natus, cupiditate molestiae, id exercitationem eaque obcaecati a animi. Accusamus, pariatur.
       </p>
-      <details>
-        <summary>Epcot Center</summary>
-        <p v-for="i in 5" :key="i">
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus
-          ipsum, reprehenderit eveniet neque ad delectus fugit!
-        </p>
+      <details class="mb-4">
+        <summary>Tap to expand</summary>
+        <div class="py-4">
+          <Placeholder class="h-8" />
+          <p class="my-5">It adjusts its height based on the content.</p>
+          <Placeholder class="h-8" />
+        </div>
       </details>
-      <template #footer>
-        <button type="button" @click="close">Close bottom sheet</button>
-      </template>
+      <button type="button" class="mb-4" @click="close">Close bottom sheet</button>
     </BottomSheet>
   </ClientOnly>
 </template>

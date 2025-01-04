@@ -4,44 +4,39 @@ import { ref, version } from 'vue'
 import BottomSheet from 'vue-spring-bottom-sheet'
 import 'vue-spring-bottom-sheet/dist/style.css'
 
-const myBottomSheet = ref<InstanceType<typeof BottomSheet>>()
+const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 const open = ref(false)
 const maxHeight = ref(0)
-const minHeight = ref(0)
-
-const expandOnContentDrag = ref(true)
 
 const toggle = () => {
   open.value = !open.value
 
   if (open.value) {
-    myBottomSheet.value?.open()
+    bottomSheet.value?.open()
   } else {
-    myBottomSheet.value?.close()
+    bottomSheet.value?.close()
   }
 }
 </script>
 
 <template>
   <div class="content">
-    <button class="btn btn-primary" type="button" @click="toggle">{{ open ? 'Close' : 'Open' }} bottom sheet</button>
+    <button type="button" @click="toggle">{{ open ? 'Close' : 'Open' }} bottom sheet</button>
     <p>vue js: {{ version }}</p>
   </div>
   <ClientOnly>
     <BottomSheet
-      ref="myBottomSheet"
+      ref="bottomSheet"
       :blocking="false"
-      :can-overlay-close="true"
-      :can-swipe-close="true"
-      :expand-on-content-drag="expandOnContentDrag"
       :snap-points="[maxHeight / 4, maxHeight / 1.5]"
-      @min-height="(n) => (minHeight = n)"
+      @closed="open = false"
+      @ready="toggle()"
       @max-height="(n) => (maxHeight = n)"
     >
       <template #header>
         <input type="text" placeholder="Search..." style="width: 100%; padding: 0.5rem; box-sizing: border-box" />
       </template>
-      <p v-for="i in 3" :key="i">
+      <p v-for="i in 3" class="mb-4" :key="i">
         Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
         reprehenderit eveniet neque ad delectus fugit!
       </p>

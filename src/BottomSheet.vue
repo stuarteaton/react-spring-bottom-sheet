@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue'
+
+import { clamp, funnel } from 'remeda'
 import { useElementBounding, useWindowSize, useScrollLock } from '@vueuse/core'
 import { type Handler, rubberbandIfOutOfBounds, useGesture } from '@vueuse/gesture'
 import { useMotionControls, useMotionProperties, useMotionTransitions } from '@vueuse/motion'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
+
 import { useSnapPoints } from './composables/useSnapPoints.ts'
 
 interface IProps {
@@ -52,7 +55,7 @@ const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
 
-const { activate, deactivate } = useFocusTrap([sheet, backdrop])
+const { activate, deactivate } = useFocusTrap([sheet, backdrop], { immediate: false })
 
 // Computed minimum height
 const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
@@ -60,7 +63,7 @@ const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sh
 // Element styling and transforms
 const { motionProperties } = useMotionProperties(sheet)
 const { push, stop, motionValues } = useMotionTransitions()
-const { set } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
+const { set, stop: stopMotion } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
 
 // Height and translation management
 const height = ref<number>(0)
@@ -69,7 +72,7 @@ const translateY = ref(0)
 // Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [minHeightComputed.value])
-const { minSnap, maxSnap, snapPoints, closestSnapPoint } = useSnapPoints(snapPointsRef, height)
+const { minSnap, maxSnap, snapPoints, closestSnapPointIndex } = useSnapPoints(snapPointsRef, height)
 
 const isWindowScrollLocked = useScrollLock(document.body)
 
@@ -138,8 +141,6 @@ function handleSheetScroll(event: TouchEvent) {
 }
 
 const snapToPoint = (snapPoint: number) => {
-  if (!sheet.value) return
-
   height.value = snapPoint
   push('height', height.value, motionProperties, {
     type: 'tween',
@@ -149,33 +150,32 @@ const snapToPoint = (snapPoint: number) => {
   })
 }
 
-const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta, direction }) => {
+const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta: [_deltaX, _deltaY], direction: [_directionX, _directionY] }) => {
   if (!sheet.value) return
 
-  if (translateY.value === 0) {
-    height.value -= delta[1]
+  if (translateY.value <= 0) {
+    height.value -= _deltaY
   }
 
   if (height.value <= minSnap.value) {
     height.value = minSnap.value
 
-    translateY.value += delta[1]
-    translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
+    translateY.value += _deltaY
 
     set({
-      y: props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+      y: props.canSwipeClose
+        ? clamp(translateY.value, { min: 0 })
+        : clamp(rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5), { min: 0 }),
     })
   }
 
-  height.value = Math.min(height.value, windowHeight.value)
-
   set({
-    height: Math.max(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), 0),
+    height: clamp(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), { min: 0, max: windowHeight.value }),
   })
 
-  if (direction[1] > 0) {
+  if (_directionY > 0) {
     emit('dragging-down')
-  } else if (direction[1] < 0) {
+  } else if (_directionY < 0) {
     emit('dragging-up')
   }
 }
@@ -193,13 +193,17 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
     close()
   }
 
-  height.value = Math.min(snapPoints.value[closestSnapPoint.value], windowHeight.value)
-
+  height.value = Math.min(snapPoints.value[closestSnapPointIndex.value], windowHeight.value)
   push('height', height.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
 }
 
 useGesture(
   {
+    onDragStart: () => {
+      height.value = sheetHeight.value
+      translateY.value = motionValues.value.y!.get()
+      stopMotion()
+    },
     onDrag: handleDrag,
     onDragEnd: handleDragEnd,
   },
@@ -211,6 +215,11 @@ useGesture(
 
 useGesture(
   {
+    onDragStart: () => {
+      height.value = sheetHeight.value
+      translateY.value = motionValues.value.y!.get()
+      stopMotion()
+    },
     onDrag: handleDrag,
     onDragEnd: handleDragEnd,
   },
@@ -222,9 +231,13 @@ useGesture(
 
 useGesture(
   {
-    onDragStart: ({ direction }) => {
+    onDragStart: ({ direction: [_directionX, _directionY] }) => {
+      height.value = sheetHeight.value
+      translateY.value = motionValues.value.y!.get()
+      stopMotion()
+
       const isAtTop = sheetScroll.value!.scrollTop === 0
-      const isDraggingDown = direction[1] > 0
+      const isDraggingDown = _directionY > 0
       const hasSingleSnapPoint = snapPoints.value.length === 1
 
       if (hasSingleSnapPoint) {
@@ -241,7 +254,7 @@ useGesture(
         }
       }
     },
-    onDrag: ({ delta, direction }) => {
+    onDrag: ({ delta: [_deltaX, _deltaY], direction: [_directionX, _directionY] }) => {
       if (!props.expandOnContentDrag) {
         preventScroll.value = false
         return
@@ -250,17 +263,17 @@ useGesture(
       if (!sheet.value) return
 
       if (translateY.value === 0 && preventScroll.value && props.expandOnContentDrag) {
-        height.value -= delta[1]
+        height.value -= _deltaY
       }
 
       if (height.value <= minSnap.value) {
         height.value = minSnap.value
 
         if (preventScroll.value && props.expandOnContentDrag) {
-          translateY.value += delta[1]
+          translateY.value += _deltaY
         }
 
-        translateY.value = Math.max(0, Math.min(translateY.value, minSnap.value))
+        translateY.value = clamp(translateY.value, { min: 0, max: minSnap.value })
 
         set({
           y: props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
@@ -275,7 +288,7 @@ useGesture(
 
       const isAtTop = sheetScroll.value!.scrollTop === 0
       if (snapPoints.value.length === 1) {
-        if (delta[1] < 0 && translateY.value === 0 && isAtTop) {
+        if (_deltaY < 0 && translateY.value === 0 && isAtTop) {
           preventScroll.value = false
         }
       } else {
@@ -288,9 +301,9 @@ useGesture(
         height: height.value,
       })
 
-      if (direction[1] > 0) {
+      if (_directionY > 0) {
         emit('dragging-down')
-      } else if (direction[1] < 0) {
+      } else if (_directionY < 0) {
         emit('dragging-up')
       }
     },
@@ -301,6 +314,23 @@ useGesture(
     drag: { filterTaps: true },
   },
 )
+
+const debouncedMaxHeightUpdate = funnel(
+  () => {
+    emit('maxHeight', windowHeight.value)
+
+    nextTick(() => {
+      height.value = snapPoints.value[closestSnapPointIndex.value]
+      snapToPoint(snapPoints.value[closestSnapPointIndex.value])
+    })
+  },
+  { minQuietPeriodMs: 50 },
+)
+
+// Watchers
+watch(windowHeight, () => {
+  debouncedMaxHeightUpdate.call()
+})
 
 watch(minHeightComputed, () => {
   emit('minHeight', minHeightComputed.value)
@@ -374,7 +404,7 @@ defineExpose({ open, close, snapToPoint })
 }
 
 [data-vsbs-shadow='true'] {
-  box-shadow: 0 -5px 60px 0 var(--vsbs-shadow-color, hsla(0, 0%, 35%, 0.2));
+  box-shadow: 0 -5px 60px 0 var(--vsbs-shadow-color, rgba(89, 89, 89, 0.2));
 }
 
 [data-vsbs-sheet] {
