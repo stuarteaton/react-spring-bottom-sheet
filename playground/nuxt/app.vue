@@ -4,6 +4,6 @@ import '~/assets/css/style.css'
 </script>
 
 <template>
-  <NaviagtionBar />
+  <NavigationBar />
   <NuxtPage />
 </template>

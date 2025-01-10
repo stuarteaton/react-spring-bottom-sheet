@@ -58,12 +58,18 @@ const { height: sheetContentHeight } = useElementBounding(sheetContent)
 const { activate, deactivate } = useFocusTrap([sheet, backdrop], { immediate: false })
 
 // Computed minimum height
-const minHeightComputed = computed(() => Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value))
+const minHeightComputed = computed(() =>
+  Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value),
+)
 
 // Element styling and transforms
 const { motionProperties } = useMotionProperties(sheet)
 const { push, stop, motionValues } = useMotionTransitions()
-const { set, stop: stopMotion } = useMotionControls(motionProperties, {}, { push, motionValues, stop })
+const { set, stop: stopMotion } = useMotionControls(
+  motionProperties,
+  {},
+  { push, motionValues, stop },
+)
 
 // Height and translation management
 const height = ref<number>(0)
@@ -72,7 +78,12 @@ const translateY = ref(0)
 // Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [minHeightComputed.value])
-const { minSnap, maxSnap, snapPoints, closestSnapPointIndex } = useSnapPoints(snapPointsRef, height)
+const {
+  minSnap,
+  maxSnap,
+  snapPoints: sortedSnapPoint,
+  closestSnapPointIndex,
+} = useSnapPoints(snapPointsRef, height)
 
 const isWindowScrollLocked = useScrollLock(document.body)
 
@@ -150,7 +161,10 @@ const snapToPoint = (snapPoint: number) => {
   })
 }
 
-const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta: [_deltaX, _deltaY], direction: [_directionX, _directionY] }) => {
+const handleDrag: Handler<'drag', PointerEvent> | undefined = ({
+  delta: [_deltaX, _deltaY],
+  direction: [_directionX, _directionY],
+}) => {
   if (!sheet.value) return
 
   if (translateY.value <= 0) {
@@ -170,7 +184,10 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({ delta: [_deltaX
   }
 
   set({
-    height: clamp(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), { min: 0, max: windowHeight.value }),
+    height: clamp(rubberbandIfOutOfBounds(height.value, 0, maxSnap.value, 0.25), {
+      min: 0,
+      max: windowHeight.value,
+    }),
   })
 
   if (_directionY > 0) {
@@ -184,17 +201,29 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   if (!sheet.value) return
 
   translateY.value = props.canSwipeClose
-    ? [0, height.value].reduce((prev, curr) => (Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev))
+    ? [0, height.value].reduce((prev, curr) =>
+        Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev,
+      )
     : 0
-  push('y', translateY.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
+  push('y', translateY.value, motionProperties, {
+    type: 'tween',
+    easings: 'easeInOut',
+    bounce: 0,
+    duration: 300,
+  })
 
   if (translateY.value === height.value) {
     translateY.value = 0
     close()
   }
 
-  height.value = Math.min(snapPoints.value[closestSnapPointIndex.value], windowHeight.value)
-  push('height', height.value, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
+  height.value = Math.min(sortedSnapPoint.value[closestSnapPointIndex.value], windowHeight.value)
+  push('height', height.value, motionProperties, {
+    type: 'tween',
+    easings: 'easeInOut',
+    bounce: 0,
+    duration: 300,
+  })
 }
 
 useGesture(
@@ -238,7 +267,7 @@ useGesture(
 
       const isAtTop = sheetScroll.value!.scrollTop === 0
       const isDraggingDown = _directionY > 0
-      const hasSingleSnapPoint = snapPoints.value.length === 1
+      const hasSingleSnapPoint = sortedSnapPoint.value.length === 1
 
       if (hasSingleSnapPoint) {
         if (translateY.value === 0 && isAtTop) {
@@ -276,7 +305,9 @@ useGesture(
         translateY.value = clamp(translateY.value, { min: 0, max: minSnap.value })
 
         set({
-          y: props.canSwipeClose ? translateY.value : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+          y: props.canSwipeClose
+            ? translateY.value
+            : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
         })
       }
 
@@ -287,7 +318,7 @@ useGesture(
       height.value = Math.min(height.value, windowHeight.value)
 
       const isAtTop = sheetScroll.value!.scrollTop === 0
-      if (snapPoints.value.length === 1) {
+      if (sortedSnapPoint.value.length === 1) {
         if (_deltaY < 0 && translateY.value === 0 && isAtTop) {
           preventScroll.value = false
         }
@@ -320,8 +351,8 @@ const debouncedMaxHeightUpdate = funnel(
     emit('maxHeight', windowHeight.value)
 
     nextTick(() => {
-      height.value = snapPoints.value[closestSnapPointIndex.value]
-      snapToPoint(snapPoints.value[closestSnapPointIndex.value])
+      height.value = sortedSnapPoint.value[closestSnapPointIndex.value]
+      snapToPoint(sortedSnapPoint.value[closestSnapPointIndex.value])
     })
   },
   { minQuietPeriodMs: 50 },
@@ -335,9 +366,9 @@ watch(windowHeight, () => {
 watch(minHeightComputed, () => {
   emit('minHeight', minHeightComputed.value)
 
-  if (snapPoints.value.length === 1) {
+  if (sortedSnapPoint.value.length === 1) {
     nextTick(() => {
-      if (snapPoints.value[0] === minHeightComputed.value) {
+      if (sortedSnapPoint.value[0] === minHeightComputed.value) {
         snapToPoint(Math.min(minHeightComputed.value, windowHeight.value))
       }
     })
@@ -369,9 +400,21 @@ defineExpose({ open, close, snapToPoint })
   <Teleport to="body">
     <div data-vsbs-container>
       <Transition name="fade">
-        <div v-show="showSheet && blocking" ref="backdrop" data-vsbs-backdrop @click="backdropClick()" />
+        <div
+          v-show="showSheet && blocking"
+          ref="backdrop"
+          data-vsbs-backdrop
+          @click="backdropClick()"
+        />
       </Transition>
-      <div ref="sheet" :data-vsbs-shadow="!blocking" :data-vsbs-sheet-show="showSheet" aria-modal="true" data-vsbs-sheet tabindex="-1">
+      <div
+        ref="sheet"
+        :data-vsbs-shadow="!blocking"
+        :data-vsbs-sheet-show="showSheet"
+        aria-modal="true"
+        data-vsbs-sheet
+        tabindex="-1"
+      >
         <div ref="sheetHeader" data-vsbs-header>
           <slot name="header" />
         </div>

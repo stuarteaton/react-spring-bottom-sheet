@@ -4,6 +4,8 @@
 
 😎 **Modern** and 🚀 **Performant** Bottom Sheet for Vue.js
 
+[Demo](https://megaarmos.douxcode.com/vue-spring-bottom-sheet/) 👀
+
 # Installation
 
 ```

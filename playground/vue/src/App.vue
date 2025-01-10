@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import Naviagtionbar from './components/NaviagtionBar.vue'
+import NavigationBar from './components/NavigationBar.vue'
 </script>
 
 <template>
-  <Naviagtionbar />
+  <NavigationBar />
   <RouterView />
 </template>
