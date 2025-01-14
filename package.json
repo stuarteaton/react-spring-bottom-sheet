@@ -32,7 +32,7 @@
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
   },
   "private": false,
-  "version": "1.1.1",
+  "version": "1.1.4",
   "type": "module",
   "exports": {
     ".": {
@@ -52,12 +52,12 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "publish": "npm run build && npm publish --access public"
+    "release": "npm run build && npm publish --access public"
   },
   "peerDependencies": {
-    "vue": ">=3.3",
     "@vueuse/gesture": "^2.0.0",
-    "@vueuse/motion": "^2.2.6"
+    "@vueuse/motion": "^2.2.6",
+    "vue": ">=3.3"
   },
   "dependencies": {
     "@vueuse/core": "^12.0.0",
@@ -66,17 +66,17 @@
     "@vueuse/motion": "^2.2.6",
     "focus-trap": "^7",
     "remeda": "^2.19.0",
-    "vue": "^3.5.13"
+    "vue": ">=3.3"
   },
   "devDependencies": {
-    "ajv": "^8.17.1",
-    "@vue/eslint-config-prettier": "^10.1.0",
-    "@vue/eslint-config-typescript": "^14.2.0",
-    "eslint": "^9.17.0",
-    "eslint-plugin-vue": "^9.32.0",
     "@types/node": "^22.10.2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/eslint-config-typescript": "^14.2.0",
     "@vue/tsconfig": "^0.7.0",
+    "ajv": "^8.17.1",
+    "eslint": "^9.17.0",
+    "eslint-plugin-vue": "^9.32.0",
     "prettier": "^3.4.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.1",
@@ -87,5 +87,8 @@
     "dist",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
