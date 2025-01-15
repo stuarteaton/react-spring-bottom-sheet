@@ -11,7 +11,7 @@
   "dependencies": {
     "vue": "3.3.0",
     "vue-router": "^4.5.0",
-    "vue-spring-bottom-sheet": "link:vue-spring-bottom-sheet"
+    "@douxcode/vue-spring-bottom-sheet": "link:@douxcode/vue-spring-bottom-sheet"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

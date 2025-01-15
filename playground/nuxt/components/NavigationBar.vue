@@ -12,6 +12,7 @@
 <style scoped>
 .navbar {
   background-color: #e6e6e6;
+  font-size: 14px;
 }
 
 .nav-list {

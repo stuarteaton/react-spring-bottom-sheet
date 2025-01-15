@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, version } from 'vue'
 
-import BottomSheet from 'vue-spring-bottom-sheet'
-import 'vue-spring-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 const maxHeight = ref(0)
@@ -38,12 +38,16 @@ const snapToPoint = (snapPoint: number) => {
         <button type="button" @click="snapToPoint(maxHeight / 1.5)">Middle</button>
         <button type="button" @click="snapToPoint(maxHeight / 3)">Bottom</button>
       </div>
-      <button type="button" style="margin-bottom: 1rem" @click="expandOnContentDrag = !expandOnContentDrag">
+      <button
+        type="button"
+        style="margin-bottom: 1rem"
+        @click="expandOnContentDrag = !expandOnContentDrag"
+      >
         {{ expandOnContentDrag ? 'Enable' : 'Disable' }} expand on content drag
       </button>
       <p v-for="i in 14" :key="i">
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
-        reprehenderit eveniet neque ad delectus fugit!
+        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet
+        veniam officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
       </p>
     </BottomSheet>
   </ClientOnly>

@@ -57,7 +57,7 @@ const { height: sheetContentHeight } = useElementBounding(sheetContent)
 
 const { activate, deactivate } = useFocusTrap([sheet, backdrop], { immediate: false })
 
-// Computed minimum height
+// Computed values
 const minHeightComputed = computed(() =>
   Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value),
 )
@@ -86,6 +86,7 @@ const {
 } = useSnapPoints(snapPointsRef, height)
 
 const isWindowScrollLocked = useScrollLock(document.body)
+const isWindowRootScrollLocked = useScrollLock(document.documentElement)
 
 // Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
@@ -105,6 +106,7 @@ const open = () => {
   push('y', 0, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
   showSheet.value = true
   isWindowScrollLocked.value = true
+  isWindowRootScrollLocked.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
 
@@ -125,6 +127,7 @@ const close = () => {
 
   showSheet.value = false
   isWindowScrollLocked.value = false
+  isWindowRootScrollLocked.value = false
 
   if (props.blocking) {
     deactivate()

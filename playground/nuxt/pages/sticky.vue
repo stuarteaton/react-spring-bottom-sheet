@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, version } from 'vue'
 
-import BottomSheet from 'vue-spring-bottom-sheet'
-import 'vue-spring-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 
@@ -26,8 +26,8 @@ const close = () => {
         <h1 style="font-size: 24px; margin: 0; text-align: center">Header</h1>
       </template>
       <p v-for="i in 5" :key="i">
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
-        reprehenderit eveniet neque ad delectus fugit!
+        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet
+        veniam officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
       </p>
       <template #footer>
         <button type="button" @click="close">Close bottom sheet</button>

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, version } from 'vue'
 
-import BottomSheet from 'vue-spring-bottom-sheet'
-import 'vue-spring-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 
@@ -23,8 +23,9 @@ const close = () => {
   <ClientOnly>
     <BottomSheet ref="bottomSheet">
       <p class="mb-4">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias atque error dignissimos impedit iure facilis ipsam sit cum molestias,
-        natus, cupiditate molestiae, id exercitationem eaque obcaecati a animi. Accusamus, pariatur.
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias atque error dignissimos
+        impedit iure facilis ipsam sit cum molestias, natus, cupiditate molestiae, id exercitationem
+        eaque obcaecati a animi. Accusamus, pariatur.
       </p>
       <details class="mb-4">
         <summary>Tap to expand</summary>

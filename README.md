@@ -13,7 +13,7 @@ npm install @douxcode/vue-spring-bottom-sheet
 ```
 
 ```
-bun i @douxcode/vue-spring-bottom-sheet
+bun install @douxcode/vue-spring-bottom-sheet
 ```
 
 # Getting started
