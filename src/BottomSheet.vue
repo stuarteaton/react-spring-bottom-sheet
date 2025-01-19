@@ -10,6 +10,7 @@ import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints.ts'
 
 interface IProps {
+  duration?: number
   snapPoints?: number[]
   defaultBreakpoint?: number
   blocking?: boolean
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<IProps>(), {
   canSwipeClose: true,
   canBackdropClose: true,
   expandOnContentDrag: true,
+  duration: 250,
 })
 
 const emit = defineEmits<{
@@ -61,6 +63,8 @@ const { activate, deactivate } = useFocusTrap([sheet, backdrop], { immediate: fa
 const minHeightComputed = computed(() =>
   Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value),
 )
+const transitionVisibility = computed(() => `visibility ${props.duration}ms ease-in-out`)
+const transitionOpacity = computed(() => `opacity ${props.duration}ms ease-in-out`)
 
 // Element styling and transforms
 const { motionProperties } = useMotionProperties(sheet)
@@ -103,7 +107,12 @@ const open = () => {
     height: height.value,
     y: height.value,
   })
-  push('y', 0, motionProperties, { type: 'tween', easings: 'easeInOut', bounce: 0, duration: 300 })
+  push('y', 0, motionProperties, {
+    type: 'tween',
+    easings: 'easeInOut',
+    bounce: 0,
+    duration: props.duration,
+  })
   showSheet.value = true
   isWindowScrollLocked.value = true
   isWindowRootScrollLocked.value = true
@@ -116,14 +125,18 @@ const open = () => {
         emit('opened')
         activate()
       }
-    }, 300)
+    }, props.duration)
   }
 }
 // Close sheet method
 const close = () => {
   if (!sheet.value) return
 
-  push('y', sheetHeight.value, motionProperties, { type: 'tween', bounce: 0, duration: 300 })
+  push('y', sheetHeight.value, motionProperties, {
+    type: 'tween',
+    bounce: 0,
+    duration: props.duration,
+  })
 
   showSheet.value = false
   isWindowScrollLocked.value = false
@@ -139,7 +152,7 @@ const close = () => {
     if (motionValues.value.y!.get() - sheetHeight.value < 0.1) {
       emit('closed')
     }
-  }, 300)
+  }, props.duration)
 }
 
 // Backdrop click handler
@@ -160,7 +173,7 @@ const snapToPoint = (snapPoint: number) => {
     type: 'tween',
     easings: 'easeInOut',
     bounce: 0,
-    duration: 300,
+    duration: props.duration,
   })
 }
 
@@ -212,7 +225,7 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
     type: 'tween',
     easings: 'easeInOut',
     bounce: 0,
-    duration: 300,
+    duration: props.duration,
   })
 
   if (translateY.value === height.value) {
@@ -225,7 +238,7 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
     type: 'tween',
     easings: 'easeInOut',
     bounce: 0,
-    duration: 300,
+    duration: props.duration,
   })
 }
 
@@ -468,7 +481,7 @@ defineExpose({ open, close, snapToPoint })
   pointer-events: all;
   position: fixed;
   right: 0;
-  transition: visibility 300ms ease-in-out;
+  transition: v-bind(transitionVisibility);
   visibility: hidden;
   width: 100%;
   will-change: height;
@@ -535,7 +548,7 @@ defineExpose({ open, close, snapToPoint })
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 300ms ease;
+  transition: v-bind(transitionOpacity);
 }
 
 .fade-enter-from,

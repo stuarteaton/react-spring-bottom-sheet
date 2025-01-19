@@ -22,8 +22,8 @@ bun install @douxcode/vue-spring-bottom-sheet
 
 ```vue
 <script setup>
-import BottomSheet from '@douxcode/vue-bottom-sheet'
-import '@douxcode/vue-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 import { ref } from 'vue'
 
 const bottomSheet = ref(null)
@@ -46,8 +46,8 @@ const close = () => {
 
 ```vue
 <script setup lang="ts">
-import BottomSheet from '@douxcode/vue-bottom-sheet'
-import '@douxcode/vue-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 import { ref } from 'vue'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()

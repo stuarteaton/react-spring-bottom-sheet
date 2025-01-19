@@ -29,7 +29,7 @@ const snapToPoint = (snapPoint: number) => {
       ref="bottomSheet"
       :can-swipe-close="false"
       :expand-on-content-drag="expandOnContentDrag"
-      :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight - 100]"
+      :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight]"
       @min-height="(n) => (minHeight = n)"
       @max-height="(n) => (maxHeight = n)"
     >
