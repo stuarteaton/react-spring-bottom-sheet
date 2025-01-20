@@ -57,7 +57,11 @@ const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
 
-const { activate, deactivate } = useFocusTrap([sheet, backdrop], { immediate: false })
+// Focus trap
+let focusTrap = useFocusTrap([sheet, backdrop], {
+  immediate: false,
+  fallbackFocus: () => sheet.value || document.body,
+})
 
 // Computed values
 const minHeightComputed = computed(() =>
@@ -123,7 +127,7 @@ const open = () => {
     setTimeout(() => {
       if (motionValues.value.y!.get() - 0 < 0.1) {
         emit('opened')
-        activate()
+        focusTrap.activate()
       }
     }, props.duration)
   }
@@ -143,7 +147,7 @@ const close = () => {
   isWindowRootScrollLocked.value = false
 
   if (props.blocking) {
-    deactivate()
+    focusTrap.deactivate()
   }
 
   window.removeEventListener('keydown', handleEscapeKey)
@@ -452,6 +456,15 @@ defineExpose({ open, close, snapToPoint })
 </template>
 
 <style scoped>
+[data-vsbs-container] {
+  position: fixed;
+  inset: 0px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 9999;
+  visibility: visible;
+}
+
 [data-vsbs-backdrop] {
   background-color: var(--vsbs-backdrop-bg, rgba(0, 0, 0, 0.5));
   inset: 0;
@@ -459,7 +472,7 @@ defineExpose({ open, close, snapToPoint })
   position: fixed;
   user-select: none;
   will-change: opacity;
-  z-index: 100;
+  z-index: 1;
 }
 
 [data-vsbs-shadow='true'] {
@@ -485,7 +498,7 @@ defineExpose({ open, close, snapToPoint })
   visibility: hidden;
   width: 100%;
   will-change: height;
-  z-index: 100;
+  z-index: 2;
 }
 
 [data-vsbs-sheet-show='true'] {
@@ -497,7 +510,7 @@ defineExpose({ open, close, snapToPoint })
   flex-shrink: 0;
   padding: 20px var(--vsbs-padding-x, 16px) 8px;
   user-select: none;
-  z-index: 1;
+  z-index: 3;
 }
 
 [data-vsbs-header]:before {
