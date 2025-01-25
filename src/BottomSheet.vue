@@ -12,7 +12,7 @@ import { useSnapPoints } from './composables/useSnapPoints.ts'
 interface IProps {
   duration?: number
   snapPoints?: number[]
-  defaultBreakpoint?: number
+  defaultSnapPoint?: number
   blocking?: boolean
   canSwipeClose?: boolean
   canBackdropClose?: boolean
@@ -105,7 +105,7 @@ const handleEscapeKey = (e: KeyboardEvent) => {
 const open = () => {
   if (!sheet.value) return
 
-  height.value = Math.min(props.defaultBreakpoint ?? minSnap.value, windowHeight.value)
+  height.value = Math.min(props.defaultSnapPoint ?? minSnap.value, windowHeight.value)
 
   set({
     height: height.value,
@@ -400,7 +400,7 @@ onMounted(() => {
   emit('minHeight', minHeightComputed.value)
   emit('maxHeight', windowHeight.value)
 
-  height.value = props.defaultBreakpoint ?? Number(minHeightComputed.value)
+  height.value = props.defaultSnapPoint ?? Number(minHeightComputed.value)
 
   set({
     height: height.value,
