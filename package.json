@@ -27,12 +27,12 @@
     "type": "git",
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet.git"
   },
-  "homepage": "https://megaarmos.douxcode.com/vue-spring-bottom-sheet/",
+  "homepage": "https://vue-spring-bottom-sheet.douxcode.com/",
   "bugs": {
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
   },
   "private": false,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "exports": {
     ".": {

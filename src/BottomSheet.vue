@@ -96,12 +96,10 @@ const {
 const isWindowScrollLocked = useScrollLock(document.body)
 const isWindowRootScrollLocked = useScrollLock(document.documentElement)
 
-// Keyboard event handler
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') close()
 }
 
-// Open sheet method
 const open = () => {
   if (!sheet.value) return
 
@@ -132,7 +130,7 @@ const open = () => {
     }, props.duration)
   }
 }
-// Close sheet method
+
 const close = () => {
   if (!sheet.value) return
 
@@ -159,7 +157,6 @@ const close = () => {
   }, props.duration)
 }
 
-// Backdrop click handler
 const backdropClick = () => {
   if (props.canBackdropClose) close()
 }

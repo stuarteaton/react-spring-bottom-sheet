@@ -4,7 +4,10 @@
 
 😎 **Modern** and 🚀 **Performant** Bottom Sheet for Vue.js
 
-[Demo](https://megaarmos.douxcode.com/vue-spring-bottom-sheet/) 👀
+[Demo](https://vue-spring-bottom-sheet.douxcode.com/) 👀
+
+| ![](https://vue-spring-bottom-sheet.douxcode.com/example_basic.png) | ![](https://vue-spring-bottom-sheet.douxcode.com/example_snap.png) | ![](https://vue-spring-bottom-sheet.douxcode.com/example_blocking.png) | ![](https://vue-spring-bottom-sheet.douxcode.com/example_sticky.png) |
+| :-----------------------------------------------------------------: | :----------------------------------------------------------------: | :--------------------------------------------------------------------: | :------------------------------------------------------------------: |
 
 # Installation
 
