@@ -58,7 +58,7 @@ const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
 
 // Focus trap
-let focusTrap = useFocusTrap([sheet, backdrop], {
+const focusTrap = useFocusTrap([sheet, backdrop], {
   immediate: false,
   fallbackFocus: () => sheet.value || document.body,
 })
