@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { BottomSheetProps } from './types.ts'
+
 import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue'
 
 import { clamp, funnel } from 'remeda'
@@ -9,17 +11,7 @@ import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 
 import { useSnapPoints } from './composables/useSnapPoints.ts'
 
-interface IProps {
-  duration?: number
-  snapPoints?: number[]
-  defaultSnapPoint?: number
-  blocking?: boolean
-  canSwipeClose?: boolean
-  canBackdropClose?: boolean
-  expandOnContentDrag?: boolean
-}
-
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<BottomSheetProps>(), {
   blocking: true,
   canSwipeClose: true,
   canBackdropClose: true,
