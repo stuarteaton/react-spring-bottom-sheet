@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, version } from 'vue'
 
-import BottomSheet from 'vue-spring-bottom-sheet'
-import 'vue-spring-bottom-sheet/dist/style.css'
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 
