@@ -153,7 +153,11 @@ const backdropClick = () => {
   if (props.canBackdropClose) close()
 }
 
-// Scroll prevention handler
+function handleTouchMove(event: TouchEvent) {
+  preventScroll.value = true
+  handleSheetScroll(event)
+}
+
 function handleSheetScroll(event: TouchEvent) {
   if (preventScroll.value) {
     event.preventDefault()
@@ -235,13 +239,15 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
   })
 }
 
+const handleDragStart = () => {
+  height.value = sheetHeight.value
+  translateY.value = motionValues.value.y!.get()
+  stopMotion()
+}
+
 useGesture(
   {
-    onDragStart: () => {
-      height.value = sheetHeight.value
-      translateY.value = motionValues.value.y!.get()
-      stopMotion()
-    },
+    onDragStart: handleDragStart,
     onDrag: handleDrag,
     onDragEnd: handleDragEnd,
   },
@@ -253,11 +259,7 @@ useGesture(
 
 useGesture(
   {
-    onDragStart: () => {
-      height.value = sheetHeight.value
-      translateY.value = motionValues.value.y!.get()
-      stopMotion()
-    },
+    onDragStart: handleDragStart,
     onDrag: handleDrag,
     onDragEnd: handleDragEnd,
   },
@@ -424,7 +426,7 @@ defineExpose({ open, close, snapToPoint })
         data-vsbs-sheet
         tabindex="-1"
       >
-        <div ref="sheetHeader" data-vsbs-header>
+        <div ref="sheetHeader" data-vsbs-header @touchmove="handleTouchMove">
           <slot name="header" />
         </div>
 
@@ -436,7 +438,7 @@ defineExpose({ open, close, snapToPoint })
           </div>
         </div>
 
-        <div ref="sheetFooter" data-vsbs-footer>
+        <div ref="sheetFooter" data-vsbs-footer @touchmove="handleTouchMove">
           <slot name="footer" />
         </div>
       </div>
