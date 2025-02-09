@@ -81,6 +81,18 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 </template>
 ```
 
+## Slots
+
+```vue
+<template>
+  <BottomSheet ref="bottomSheet">
+    <template #header> Header </template>
+    <div>Your content</div>
+    <template #footer> Footer </template>
+  </BottomSheet>
+</template>
+```
+
 ## CSS Custom Properties
 
 ```css
