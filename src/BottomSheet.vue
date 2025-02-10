@@ -108,8 +108,6 @@ const open = () => {
     duration: props.duration,
   })
   showSheet.value = true
-  isWindowScrollLocked.value = true
-  isWindowRootScrollLocked.value = true
 
   window.addEventListener('keydown', handleEscapeKey)
 
@@ -133,8 +131,6 @@ const close = () => {
   })
 
   showSheet.value = false
-  isWindowScrollLocked.value = false
-  isWindowRootScrollLocked.value = false
 
   if (props.blocking) {
     focusTrap.deactivate()
@@ -211,7 +207,8 @@ const handleDrag: Handler<'drag', PointerEvent> | undefined = ({
 }
 
 const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
-  if (!sheet.value) return
+  isWindowScrollLocked.value = false
+  isWindowRootScrollLocked.value = false
 
   translateY.value = props.canSwipeClose
     ? [0, height.value].reduce((prev, curr) =>
@@ -240,6 +237,9 @@ const handleDragEnd: Handler<'drag', PointerEvent> | undefined = () => {
 }
 
 const handleDragStart = () => {
+  isWindowScrollLocked.value = true
+  isWindowRootScrollLocked.value = true
+
   height.value = sheetHeight.value
   translateY.value = motionValues.value.y!.get()
   stopMotion()
@@ -272,6 +272,9 @@ useGesture(
 useGesture(
   {
     onDragStart: ({ direction: [_directionX, _directionY] }) => {
+      isWindowScrollLocked.value = true
+      isWindowRootScrollLocked.value = true
+
       height.value = sheetHeight.value
       translateY.value = motionValues.value.y!.get()
       stopMotion()
