@@ -17,7 +17,6 @@ export function useSnapPoints(snapPoints: Ref<number[]>, height: Ref<number>) {
   return {
     minSnap,
     maxSnap,
-    snapPoints,
     closestSnapPointIndex,
   }
 }

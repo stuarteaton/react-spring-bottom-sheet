@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@douxcode/vue-spring-bottom-sheet": "link:@douxcode/vue-spring-bottom-sheet",
     "vue": "3.3.0",
-    "vue-router": "^4.5.0",
-    "@douxcode/vue-spring-bottom-sheet": "link:@douxcode/vue-spring-bottom-sheet"
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

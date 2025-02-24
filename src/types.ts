@@ -1,6 +1,6 @@
 export interface BottomSheetProps {
   duration?: number
-  snapPoints?: number[]
+  snapPoints?: Array<number | `${number}%`>
   defaultSnapPoint?: number
   blocking?: boolean
   canSwipeClose?: boolean

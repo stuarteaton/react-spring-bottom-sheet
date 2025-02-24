@@ -27,28 +27,35 @@ const toggle = () => {
   <BottomSheet
     ref="bottomSheet"
     :blocking="false"
-    :snap-points="[maxHeight / 4, maxHeight / 1.5]"
+    :snap-points="['25%', '60%']"
     @closed="open = false"
-    @ready="toggle()"
-    @max-height="(n) => (maxHeight = n)"
+    @vue:mounted="toggle()"
   >
     <template #header>
-      <input type="text" placeholder="Search..." style="width: 100%; padding: 0.5rem; box-sizing: border-box" />
+      <input
+        type="text"
+        placeholder="Search..."
+        style="width: 100%; padding: 0.5rem; box-sizing: border-box"
+      />
     </template>
     <p v-for="i in 3" class="mb-4" :key="i">
-      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
-      reprehenderit eveniet neque ad delectus fugit!
+      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam
+      officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
     </p>
   </BottomSheet>
 </template>
 
 <style>
 .content {
-  height: calc(100dvh - 56px);
+  max-width: 768px;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  font-size: 1rem;
 }
 
 .button-group {

@@ -24,10 +24,12 @@ const close = () => {
     <template #header>
       <h1 style="font-size: 24px; margin: 0; text-align: center">Header</h1>
     </template>
+    
     <p v-for="i in 5" :key="i">
-      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam officiis libero necessitatibus ipsum,
-      reprehenderit eveniet neque ad delectus fugit!
+      Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet veniam
+      officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
     </p>
+
     <template #footer>
       <button type="button" @click="close">Close bottom sheet</button>
     </template>
@@ -36,11 +38,15 @@ const close = () => {
 
 <style>
 .content {
-  height: calc(100dvh - 56px);
+  max-width: 768px;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  font-size: 1rem;
 }
 
 .button-group {
