@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { version, ref } from 'vue'
 
 import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
 import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
@@ -19,6 +19,7 @@ const close = () => {
   <!-- <BottomSheet  /> -->
   <div class="content" id="content">
     <button type="button" @click="open">Open bottom sheet</button>
+    <p>vue js: {{ version }}</p>
     <br />
     <br />
     Example content to make the page scrollable... Lorem, ipsum dolor sit amet consectetur

@@ -33,7 +33,7 @@ const snapToPoint = (snapPoint: number) => {
     :can-overlay-close="true"
     :can-swipe-close="false"
     :expand-on-content-drag="expandOnContentDrag"
-    :snap-points="['80%', '50%', 300, instinctHeight]"
+    :snap-points="['90%', '50%', 250, instinctHeight]"
     @instinct-height="(n) => (instinctHeight = n)"
   >
     <div class="button-group">

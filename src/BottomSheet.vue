@@ -72,7 +72,10 @@ let currentTranslateY: string = '0%'
 // Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [instinctHeightComputed.value])
-// const { minSnap, maxSnap, closestSnapPointIndex } = useSnapPoints(snapPointsRef, height)
+const { flattenedSnapPoints, currentSnapPointIndex, minSnapPoint } = useSnapPoints(
+  snapPointsRef,
+  height,
+)
 
 // Element transforms
 function template({ y }: TransformProperties) {
@@ -108,8 +111,10 @@ const backdropClick = () => {
 const open = async () => {
   showSheet.value = true
 
-  isWindowScrollLocked.value = true
-  isWindowRootScrollLocked.value = true
+  if (props.blocking) {
+    isWindowScrollLocked.value = true
+    isWindowRootScrollLocked.value = true
+  }
 
   await nextTick()
 
@@ -128,14 +133,18 @@ const open = async () => {
 
   await nextTick()
 
+  currentSnapPointIndex.value = flattenedSnapPoints.value.findIndex(
+    (point) => point === minSnapPoint.value,
+  )
+
   controls.set({
-    height: clamp(sheetHeight.value, {
+    height: clamp(minSnapPoint.value, {
       max: windowHeight.value,
     }),
   })
 
   controls.start({
-    height: clamp(sheetHeight.value, {
+    height: clamp(minSnapPoint.value, {
       max: windowHeight.value,
     }),
     y: 0,
@@ -156,8 +165,10 @@ const open = async () => {
 const close = () => {
   showSheet.value = false
 
-  isWindowScrollLocked.value = false
-  isWindowRootScrollLocked.value = false
+  if (props.blocking) {
+    isWindowScrollLocked.value = false
+    isWindowRootScrollLocked.value = false
+  }
 
   window.removeEventListener('keydown', handleEscapeKey)
 
@@ -169,21 +180,50 @@ const close = () => {
 const snapToPoint = (index: number) => {
   if (!props.snapPoints) return
 
+  currentSnapPointIndex.value = index
+
+  const snapPoint =
+    typeof props.snapPoints[index] === 'number'
+      ? clamp(props.snapPoints[index], {
+          max: windowHeight.value,
+        })
+      : props.snapPoints[index]
+
   controls.start({
-    height: props.snapPoints[index],
+    height: snapPoint,
     y: 0,
   })
 }
 
-watch(instinctHeightComputed, (value) => {
-  if (value === sheetHeight.value) return
+const debouncedSnapping = funnel(
+  // Callback receives accumulated state from reducer
+  ([value, oldValue]: number[][]) => {
+    if (value[currentSnapPointIndex.value] !== oldValue[currentSnapPointIndex.value]) {
+      controls.start({
+        height: clamp(value[currentSnapPointIndex.value], {
+          max: windowHeight.value,
+        }),
+        y: 0,
+      })
+    }
+  },
+  {
+    minQuietPeriodMs: props.duration,
+    // Reducer accumulates arguments from .call() invocations
+    reducer: (prev: number[][] | undefined, value: number[], oldValue: number[]) => [
+      value,
+      oldValue,
+    ],
+  },
+)
 
-  controls.start({
-    height: clamp(value, {
-      max: windowHeight.value,
-    }),
-    y: 0,
-  })
+// Pass arguments to .call()
+// messageFunnel.call('Hello')
+
+watch(flattenedSnapPoints, async (value, oldValue) => {
+  controls.stop()
+
+  debouncedSnapping.call(value, oldValue)
 })
 
 watch(instinctHeightComputed, (value) => {
