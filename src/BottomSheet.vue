@@ -4,11 +4,14 @@ import type { BottomSheetProps } from './types'
 import { Motion, AnimatePresence, useAnimationControls } from 'motion-v'
 import type { PanInfo, TransformProperties } from 'motion-v'
 
-import { computed, nextTick, onMounted, ref, toRefs, watch } from 'vue'
+import { computed, nextTick, ref, toRefs, watch } from 'vue'
 import { useElementBounding, useScrollLock, useWindowSize } from '@vueuse/core'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints'
 import { clamp, funnel } from 'remeda'
+import { rubberbandIfOutOfBounds } from './utils/rubberbandIfOutOfBounds'
+import { translateYToNumber } from './utils/translateYPercentToPx'
+import { heightPercentToPixels } from './utils/heightPercentToPixels'
 
 const props = withDefaults(defineProps<BottomSheetProps>(), {
   blocking: true,
@@ -58,20 +61,25 @@ const instinctHeightComputed = computed({
   },
 })
 
-const height = ref<number>(0)
+const height = ref<number | `${number}%`>(0)
 const translateY = ref<number>(0)
-let currentTranslateY: string = '0%'
-// const currentTranslateY = () => parseInt(currentTranslateYPX.value.replace('px', ''))
+const currentTranslateYTemplate = ref('0%')
+const currentTranslateY = computed(() =>
+  translateYToNumber(currentTranslateYTemplate.value, sheetHeight.value),
+)
 
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [instinctHeightComputed.value])
-const { flattenedSnapPoints, currentSnapPointIndex, minSnapPoint } = useSnapPoints(
-  snapPointsRef,
-  height,
-)
+const {
+  flattenedSnapPoints,
+  currentSnapPointIndex,
+  closestSnapPointIndex,
+  minSnapPoint,
+  maxSnapPoint,
+} = useSnapPoints(snapPointsRef, height)
 
 function template({ y }: TransformProperties) {
-  currentTranslateY = y as string
+  currentTranslateYTemplate.value = y as string
 
   return `translateY(${y})`
 }
@@ -129,16 +137,16 @@ const open = async () => {
     (point) => point === minSnapPoint.value,
   )
 
+  height.value = clamp(minSnapPoint.value, {
+    max: windowHeight.value,
+  })
+
   controls.set({
-    height: clamp(minSnapPoint.value, {
-      max: windowHeight.value,
-    }),
+    height: height.value,
   })
 
   controls.start({
-    height: clamp(minSnapPoint.value, {
-      max: windowHeight.value,
-    }),
+    height: height.value,
     y: 0,
   })
 
@@ -146,7 +154,7 @@ const open = async () => {
 
   if (props.blocking) {
     setTimeout(() => {
-      if (parseInt(currentTranslateY.replace('%', '')) - 0 < 0.1) {
+      if (parseInt(currentTranslateYTemplate.value.replace('%', '')) - 0 < 0.1) {
         emit('opened')
         focusTrap.activate()
       }
@@ -185,10 +193,94 @@ const snapToPoint = (index: number) => {
         })
       : snapPointsRef.value[index]
 
+  height.value = snapPoint
+
   controls.start({
-    height: snapPoint,
+    height: height.value,
     y: 0,
   })
+}
+
+const handlePanStart = () => {
+  isWindowScrollLocked.value = true
+  isWindowRootScrollLocked.value = true
+
+  height.value = sheetHeight.value
+
+  translateY.value = currentTranslateY.value
+
+  controls.stop()
+}
+
+const handlePan = (_: PointerEvent, info: PanInfo) => {
+  if (!sheet.value) return
+  if (typeof height.value == 'string') {
+    height.value = heightPercentToPixels(height.value)
+  }
+
+  if (translateY.value <= 0) {
+    height.value -= info.delta.y
+  }
+
+  if (height.value <= minSnapPoint.value) {
+    height.value = minSnapPoint.value
+
+    translateY.value += info.delta.y
+
+    controls.set({
+      y: props.canSwipeClose
+        ? clamp(translateY.value, { min: 0 })
+        : clamp(rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5), { min: 0 }),
+    })
+  }
+
+  controls.set({
+    height: clamp(rubberbandIfOutOfBounds(height.value, 0, maxSnapPoint.value, 0.25), {
+      min: 0,
+      max: windowHeight.value,
+    }),
+  })
+
+  if (info.delta.y > 0) {
+    emit('dragging-down')
+  } else if (info.delta.y < 0) {
+    emit('dragging-up')
+  }
+}
+
+const handlePanEnd = () => {
+  if (typeof height.value == 'string') {
+    height.value = heightPercentToPixels(height.value)
+  }
+
+  if (!props.blocking) {
+    isWindowScrollLocked.value = false
+    isWindowRootScrollLocked.value = false
+  }
+
+  translateY.value = props.canSwipeClose
+    ? [0, height.value].reduce((prev, curr) =>
+        Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev,
+      )
+    : 0
+  controls.start({ y: translateY.value })
+
+  if (translateY.value === height.value) {
+    translateY.value = 0
+    close()
+  }
+
+  currentSnapPointIndex.value = closestSnapPointIndex.value
+  const snapPoint =
+    typeof snapPointsRef.value[closestSnapPointIndex.value] === 'number'
+      ? clamp(snapPointsRef.value[closestSnapPointIndex.value] as number, {
+          max: windowHeight.value,
+        })
+      : snapPointsRef.value[closestSnapPointIndex.value]
+
+  height.value = snapPoint
+
+  controls.start({ y: 0, height: height.value })
 }
 
 const debouncedSnapToPoint = funnel((index) => snapToPoint(index), {
@@ -208,11 +300,13 @@ watch(snapPointsRef, (value, oldValue) => {
   if (typeof currentSnapPoint === 'string') return
   if (typeof previousSnapPoint === 'string') return
 
+  height.value = clamp(currentSnapPoint, {
+    max: windowHeight.value,
+  })
+
   if (currentSnapPoint !== previousSnapPoint) {
     controls.start({
-      height: clamp(currentSnapPoint, {
-        max: windowHeight.value,
-      }),
+      height: height.value,
       y: 0,
     })
   }
@@ -266,10 +360,14 @@ defineExpose({ open, close, snapToPoint })
           data-vsbs-sheet
           tabindex="-1"
         >
-          <Motion ref="sheetHeader" data-vsbs-header @touchmove="handleTouchMove">
-            <!-- @pan-start="handlePanStart" -->
-            <!-- @pan="handlePan" -->
-            <!-- @pan-end="handlePanEnd" -->
+          <Motion
+            ref="sheetHeader"
+            data-vsbs-header
+            @pan-start="handlePanStart"
+            @pan="handlePan"
+            @pan-end="handlePanEnd"
+            @touchmove="handleTouchMove"
+          >
             <slot name="header" />
           </Motion>
           <div ref="sheetScroll" data-vsbs-scroll>
@@ -286,10 +384,14 @@ defineExpose({ open, close, snapToPoint })
               </div>
             </Motion>
           </div>
-          <Motion ref="sheetFooter" data-vsbs-footer @touchmove="handleTouchMove">
-            <!-- @pan-start="handlePanStart" -->
-            <!-- @pan="handlePan" -->
-            <!-- @pan-end="handlePanEnd" -->
+          <Motion
+            ref="sheetFooter"
+            data-vsbs-footer
+            @pan-start="handlePanStart"
+            @pan="handlePan"
+            @pan-end="handlePanEnd"
+            @touchmove="handleTouchMove"
+          >
             <slot name="footer" />
           </Motion>
         </Motion>

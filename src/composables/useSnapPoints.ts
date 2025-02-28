@@ -1,7 +1,10 @@
 import { computed, ref, type Ref } from 'vue'
 import { heightPercentToPixels } from '../utils/heightPercentToPixels'
 
-export function useSnapPoints(snapPoints: Ref<Array<number | `${number}%`>>, height: Ref<number>) {
+export function useSnapPoints(
+  snapPoints: Ref<Array<number | `${number}%`>>,
+  height: Ref<number | `${number}%`>,
+) {
   const currentSnapPointIndex = ref(0)
 
   const flattenedSnapPoints = computed(() => {
@@ -22,13 +25,22 @@ export function useSnapPoints(snapPoints: Ref<Array<number | `${number}%`>>, hei
     return Math.max(...flattenedSnapPoints.value)
   })
 
-  // const closestSnapPointIndex = computed(() => {
-  //   const closest = sortedSnapPoints.value.reduce((prev, curr) =>
-  //     Math.abs(curr - height.value) < Math.abs(prev - height.value) ? curr : prev,
-  //   )
+  const closestSnapPointIndex = computed(() => {
+    const heightValue =
+      typeof height.value === 'string' ? heightPercentToPixels(height.value) : height.value
 
-  //   return sortedSnapPoints.value.indexOf(closest)
-  // })
+    const closest = flattenedSnapPoints.value.reduce((prev, curr) =>
+      Math.abs(curr - heightValue) < Math.abs(prev - heightValue) ? curr : prev,
+    )
 
-  return { currentSnapPointIndex, flattenedSnapPoints, minSnapPoint, maxSnapPoint }
+    return flattenedSnapPoints.value.indexOf(closest)
+  })
+
+  return {
+    currentSnapPointIndex,
+    flattenedSnapPoints,
+    minSnapPoint,
+    maxSnapPoint,
+    closestSnapPointIndex,
+  }
 }
