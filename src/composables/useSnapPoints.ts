@@ -17,13 +17,8 @@ export function useSnapPoints(
     })
   })
 
-  const minSnapPoint = computed(() => {
-    return Math.min(...flattenedSnapPoints.value)
-  })
-
-  const maxSnapPoint = computed(() => {
-    return Math.max(...flattenedSnapPoints.value)
-  })
+  const minSnapPoint = computed(() => Math.min(...flattenedSnapPoints.value))
+  const maxSnapPoint = computed(() => Math.max(...flattenedSnapPoints.value))
 
   const closestSnapPointIndex = computed(() => {
     const heightValue =

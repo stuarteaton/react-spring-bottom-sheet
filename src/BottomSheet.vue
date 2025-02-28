@@ -8,7 +8,7 @@ import { computed, nextTick, ref, toRefs, watch } from 'vue'
 import { useElementBounding, useScrollLock, useWindowSize } from '@vueuse/core'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints'
-import { clamp, funnel } from 'remeda'
+import { clamp, funnel, round } from 'remeda'
 import { rubberbandIfOutOfBounds } from './utils/rubberbandIfOutOfBounds'
 import { translateYToNumber } from './utils/translateYPercentToPx'
 import { heightPercentToPixels } from './utils/heightPercentToPixels'
@@ -54,7 +54,12 @@ const focusTrap = useFocusTrap([sheet, backdrop], {
 
 const instinctHeightComputed = computed({
   get() {
-    return Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value)
+    return clamp(
+      Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value),
+      {
+        max: windowHeight.value,
+      },
+    )
   },
   set(newValue: number[]) {
     ;[sheetHeaderHeight.value, sheetContentHeight.value, sheetFooterHeight.value] = newValue
@@ -184,6 +189,11 @@ const close = () => {
 const snapToPoint = (index: number) => {
   if (!snapPointsRef.value) return
 
+  if (index < 0 || index >= snapPointsRef.value.length) {
+    console.warn('Index out of bounds')
+    return
+  }
+
   currentSnapPointIndex.value = index
 
   const snapPoint =
@@ -283,6 +293,93 @@ const handlePanEnd = () => {
   controls.start({ y: 0, height: height.value })
 }
 
+const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
+  isWindowScrollLocked.value = true
+  isWindowRootScrollLocked.value = true
+
+  height.value = sheetHeight.value
+  translateY.value = currentTranslateY.value
+  controls.stop()
+
+  const isAtTop = sheetScroll.value!.scrollTop === 0
+  const isDraggingDown = info.delta.y > 0
+  const hasSingleSnapPoint = flattenedSnapPoints.value.length === 1
+
+  if (hasSingleSnapPoint) {
+    if (translateY.value === 0 && isAtTop) {
+      preventScroll.value = isDraggingDown
+    }
+  } else {
+    if (props.expandOnContentDrag && height.value !== maxSnapPoint.value) {
+      preventScroll.value = true
+    }
+
+    if (round(height.value, 1) === maxSnapPoint.value && !isAtTop) {
+      preventScroll.value = false
+    }
+  }
+}
+
+const handleContentPan = (_: PointerEvent, info: PanInfo) => {
+  if (typeof height.value == 'string') {
+    height.value = heightPercentToPixels(height.value)
+  }
+
+  if (!props.expandOnContentDrag) {
+    preventScroll.value = false
+    return
+  }
+
+  if (!sheet.value) return
+
+  if (translateY.value === 0 && preventScroll.value && props.expandOnContentDrag) {
+    height.value -= info.delta.y
+  }
+
+  if (height.value <= minSnapPoint.value) {
+    height.value = minSnapPoint.value
+
+    if (preventScroll.value && props.expandOnContentDrag) {
+      translateY.value += info.delta.y
+    }
+
+    translateY.value = clamp(translateY.value, { min: 0, max: minSnapPoint.value })
+
+    controls.set({
+      y: props.canSwipeClose
+        ? translateY.value
+        : rubberbandIfOutOfBounds(translateY.value, -sheetHeight.value, 0, 0.5),
+    })
+  }
+
+  if (height.value > maxSnapPoint.value) {
+    height.value = maxSnapPoint.value
+  }
+
+  height.value = clamp(height.value, { max: windowHeight.value })
+
+  const isAtTop = sheetScroll.value!.scrollTop === 0
+  if (flattenedSnapPoints.value.length === 1) {
+    if (info.delta.y < 0 && translateY.value === 0 && isAtTop) {
+      preventScroll.value = false
+    }
+  } else {
+    if (height.value === maxSnapPoint.value) {
+      preventScroll.value = false
+    }
+  }
+
+  controls.set({
+    height: height.value,
+  })
+
+  if (info.delta.y > 0) {
+    emit('dragging-down')
+  } else if (info.delta.y < 0) {
+    emit('dragging-up')
+  }
+}
+
 const debouncedSnapToPoint = funnel((index) => snapToPoint(index), {
   minQuietPeriodMs: props.duration,
   reducer: (prev: number | undefined, index: number) => index,
@@ -374,11 +471,11 @@ defineExpose({ open, close, snapToPoint })
             <Motion
               ref="sheetContentWrapper"
               data-vsbs-content-wrapper
+              @pan-start="handleContentPanStart"
+              @pan="handleContentPan"
+              @pan-end="handlePanEnd"
               @touchmove="handleSheetScroll"
             >
-              <!-- @pan-start="handleContentPanStart" -->
-              <!-- @pan="handleContentPan" -->
-              <!-- @pan-end="handlePanEnd" -->
               <div ref="sheetContent" data-vsbs-content>
                 <slot />
               </div>
