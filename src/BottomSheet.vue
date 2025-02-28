@@ -27,7 +27,6 @@ const emit = defineEmits<{
   (e: 'instinctHeight', instinctHeight: number): void
 }>()
 
-// Refs for DOM elements
 const sheet = ref()
 const sheetHeader = ref<HTMLElement | null>(null)
 const sheetFooter = ref<HTMLElement | null>(null)
@@ -35,25 +34,21 @@ const sheetScroll = ref<HTMLElement | null>(null)
 const sheetContentWrapper = ref<HTMLElement | null>(null)
 const sheetContent = ref<HTMLElement | null>(null)
 
-// State management refs
 const backdrop = ref<HTMLElement | null>(null)
 const showSheet = ref(false)
 const preventScroll = ref(props.expandOnContentDrag)
 
-// Element dimensions
 const { height: windowHeight } = useWindowSize()
 const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
 
-// Focus trap
 const focusTrap = useFocusTrap([sheet, backdrop], {
   immediate: false,
   fallbackFocus: () => sheet.value || document.body,
 })
 
-// Computed values
 const instinctHeightComputed = computed({
   get() {
     return Math.ceil(sheetContentHeight.value + sheetHeaderHeight.value + sheetFooterHeight.value)
@@ -63,13 +58,11 @@ const instinctHeightComputed = computed({
   },
 })
 
-// Height and translation management.value
 const height = ref<number>(0)
 const translateY = ref<number>(0)
 let currentTranslateY: string = '0%'
 // const currentTranslateY = () => parseInt(currentTranslateYPX.value.replace('px', ''))
 
-// Snap points management
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [instinctHeightComputed.value])
 const { flattenedSnapPoints, currentSnapPointIndex, minSnapPoint } = useSnapPoints(
@@ -77,7 +70,6 @@ const { flattenedSnapPoints, currentSnapPointIndex, minSnapPoint } = useSnapPoin
   height,
 )
 
-// Element transforms
 function template({ y }: TransformProperties) {
   currentTranslateY = y as string
 
