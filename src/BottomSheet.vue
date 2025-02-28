@@ -175,19 +175,23 @@ const close = () => {
   if (props.blocking) {
     focusTrap.deactivate()
   }
+
+  setTimeout(() => {
+    emit('closed')
+  }, props.duration)
 }
 
 const snapToPoint = (index: number) => {
-  if (!props.snapPoints) return
+  if (!snapPointsRef.value) return
 
   currentSnapPointIndex.value = index
 
   const snapPoint =
-    typeof props.snapPoints[index] === 'number'
-      ? clamp(props.snapPoints[index], {
+    typeof snapPointsRef.value[index] === 'number'
+      ? clamp(snapPointsRef.value[index], {
           max: windowHeight.value,
         })
-      : props.snapPoints[index]
+      : snapPointsRef.value[index]
 
   controls.start({
     height: snapPoint,
@@ -195,35 +199,35 @@ const snapToPoint = (index: number) => {
   })
 }
 
-const debouncedSnapping = funnel(
-  // Callback receives accumulated state from reducer
-  ([value, oldValue]: number[][]) => {
-    if (value[currentSnapPointIndex.value] !== oldValue[currentSnapPointIndex.value]) {
-      controls.start({
-        height: clamp(value[currentSnapPointIndex.value], {
-          max: windowHeight.value,
-        }),
-        y: 0,
-      })
-    }
-  },
-  {
-    minQuietPeriodMs: props.duration,
-    // Reducer accumulates arguments from .call() invocations
-    reducer: (prev: number[][] | undefined, value: number[], oldValue: number[]) => [
-      value,
-      oldValue,
-    ],
-  },
-)
+const debouncedSnapToPoint = funnel((index) => snapToPoint(index), {
+  minQuietPeriodMs: props.duration,
+  reducer: (prev: number | undefined, index: number) => index,
+})
 
-// Pass arguments to .call()
-// messageFunnel.call('Hello')
+watch(snapPointsRef, (value, oldValue) => {
+  if (showSheet.value === false) return
 
-watch(flattenedSnapPoints, async (value, oldValue) => {
-  controls.stop()
+  if (!value) return
+  if (!oldValue) return
 
-  debouncedSnapping.call(value, oldValue)
+  const currentSnapPoint = value[currentSnapPointIndex.value]
+  const previousSnapPoint = oldValue[currentSnapPointIndex.value]
+
+  if (typeof currentSnapPoint === 'string') return
+  if (typeof previousSnapPoint === 'string') return
+
+  if (currentSnapPoint !== previousSnapPoint) {
+    controls.start({
+      height: clamp(currentSnapPoint, {
+        max: windowHeight.value,
+      }),
+      y: 0,
+    })
+  }
+})
+
+watch(windowHeight, () => {
+  debouncedSnapToPoint.call(currentSnapPointIndex.value)
 })
 
 watch(instinctHeightComputed, (value) => {
@@ -260,8 +264,8 @@ defineExpose({ open, close, snapToPoint })
             ease: 'easeInOut',
             duration: duration / 1000,
           }"
+          :exit="{ y: '100%', height: sheetHeight }"
           :initial="{ y: '100%' }"
-          :exit="{ y: '100%' }"
           :transform-template="template"
           :data-vsbs-shadow="!blocking"
           :animate="controls"
@@ -400,7 +404,7 @@ defineExpose({ open, close, snapToPoint })
 
 [data-vsbs-content] {
   display: grid;
-  padding: 1vh var(--vsbs-padding-x, 16px);
+  padding: 8px var(--vsbs-padding-x, 16px);
   user-select: none;
 }
 </style>
