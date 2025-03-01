@@ -41,7 +41,9 @@ const backdrop = ref<HTMLElement | null>(null)
 const showSheet = ref(false)
 const preventScroll = ref(props.expandOnContentDrag)
 
-const { height: windowHeight } = useWindowSize()
+const { height: windowHeight } = useWindowSize({
+  type: 'visual',
+})
 const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
@@ -216,7 +218,6 @@ const handlePanStart = () => {
   isWindowRootScrollLocked.value = true
 
   height.value = sheetHeight.value
-
   translateY.value = currentTranslateY.value
 
   controls.stop()
@@ -301,21 +302,40 @@ const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
   translateY.value = currentTranslateY.value
   controls.stop()
 
-  const isAtTop = sheetScroll.value!.scrollTop === 0
+  const isScrollAtTop = sheetScroll.value!.scrollTop === 0
   const isDraggingDown = info.delta.y > 0
   const hasSingleSnapPoint = flattenedSnapPoints.value.length === 1
+  const isAtTheTop = 0.5 > Math.abs(height.value - maxSnapPoint.value)
 
   if (hasSingleSnapPoint) {
-    if (translateY.value === 0 && isAtTop) {
-      preventScroll.value = isDraggingDown
-    }
-  } else {
-    if (props.expandOnContentDrag && height.value !== maxSnapPoint.value) {
+    if (currentTranslateY.value === 0 && isScrollAtTop && isDraggingDown) {
       preventScroll.value = true
     }
 
-    if (round(height.value, 1) === maxSnapPoint.value && !isAtTop) {
+    if (currentTranslateY.value === 0 && isScrollAtTop && !isDraggingDown) {
       preventScroll.value = false
+    }
+  } else {
+    if (!props.expandOnContentDrag) {
+      preventScroll.value = false
+
+      return
+    }
+
+    preventScroll.value = true
+
+    if (isAtTheTop) {
+      if (isDraggingDown && isScrollAtTop) {
+        preventScroll.value = true
+      }
+
+      if (!isDraggingDown && isScrollAtTop) {
+        preventScroll.value = false
+      }
+
+      if (!isScrollAtTop) {
+        preventScroll.value = false
+      }
     }
   }
 }
@@ -358,12 +378,8 @@ const handleContentPan = (_: PointerEvent, info: PanInfo) => {
 
   height.value = clamp(height.value, { max: windowHeight.value })
 
-  const isAtTop = sheetScroll.value!.scrollTop === 0
-  if (flattenedSnapPoints.value.length === 1) {
-    if (info.delta.y < 0 && translateY.value === 0 && isAtTop) {
-      preventScroll.value = false
-    }
-  } else {
+  const hasSingleSnapPoint = flattenedSnapPoints.value.length === 1
+  if (!hasSingleSnapPoint) {
     if (height.value === maxSnapPoint.value) {
       preventScroll.value = false
     }
