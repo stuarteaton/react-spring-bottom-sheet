@@ -8,7 +8,7 @@ import { computed, nextTick, ref, toRefs, watch } from 'vue'
 import { useElementBounding, useScrollLock, useWindowSize } from '@vueuse/core'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints'
-import { clamp, funnel, round } from 'remeda'
+import { clamp, funnel } from 'remeda'
 import { rubberbandIfOutOfBounds } from './utils/rubberbandIfOutOfBounds'
 import { translateYToNumber } from './utils/translateYPercentToPx'
 import { heightPercentToPixels } from './utils/heightPercentToPixels'
@@ -30,6 +30,7 @@ const emit = defineEmits<{
   (e: 'instinctHeight', instinctHeight: number): void
 }>()
 
+const showSheet = ref(false)
 const sheet = ref()
 const sheetHeader = ref<HTMLElement | null>(null)
 const sheetFooter = ref<HTMLElement | null>(null)
@@ -38,8 +39,7 @@ const sheetContentWrapper = ref<HTMLElement | null>(null)
 const sheetContent = ref<HTMLElement | null>(null)
 
 const backdrop = ref<HTMLElement | null>(null)
-const showSheet = ref(false)
-const preventScroll = ref(props.expandOnContentDrag)
+const preventContentScroll = ref(props.expandOnContentDrag)
 
 const { height: windowHeight } = useWindowSize({
   type: 'visual',
@@ -48,11 +48,6 @@ const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)
 const { height: sheetFooterHeight } = useElementBounding(sheetFooter)
-
-const focusTrap = useFocusTrap([sheet, backdrop], {
-  immediate: false,
-  fallbackFocus: () => sheet.value || document.body,
-})
 
 const instinctHeightComputed = computed({
   get() {
@@ -96,13 +91,18 @@ const controls = useAnimationControls()
 const isWindowScrollLocked = useScrollLock(document.body)
 const isWindowRootScrollLocked = useScrollLock(document.documentElement)
 
+const focusTrap = useFocusTrap([sheet, backdrop], {
+  immediate: false,
+  fallbackFocus: () => sheet.value || document.body,
+})
+
 function handleTouchMove(event: TouchEvent) {
-  preventScroll.value = true
+  preventContentScroll.value = true
   handleSheetScroll(event)
 }
 
 function handleSheetScroll(event: TouchEvent) {
-  if (preventScroll.value) {
+  if (preventContentScroll.value) {
     event.preventDefault()
   }
 }
@@ -214,9 +214,6 @@ const snapToPoint = (index: number) => {
 }
 
 const handlePanStart = () => {
-  isWindowScrollLocked.value = true
-  isWindowRootScrollLocked.value = true
-
   height.value = sheetHeight.value
   translateY.value = currentTranslateY.value
 
@@ -264,11 +261,6 @@ const handlePanEnd = () => {
     height.value = heightPercentToPixels(height.value)
   }
 
-  if (!props.blocking) {
-    isWindowScrollLocked.value = false
-    isWindowRootScrollLocked.value = false
-  }
-
   translateY.value = props.canSwipeClose
     ? [0, height.value].reduce((prev, curr) =>
         Math.abs(curr - translateY.value) < Math.abs(prev - translateY.value) ? curr : prev,
@@ -295,9 +287,6 @@ const handlePanEnd = () => {
 }
 
 const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
-  isWindowScrollLocked.value = true
-  isWindowRootScrollLocked.value = true
-
   height.value = sheetHeight.value
   translateY.value = currentTranslateY.value
   controls.stop()
@@ -309,32 +298,32 @@ const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
 
   if (hasSingleSnapPoint) {
     if (currentTranslateY.value === 0 && isScrollAtTop && isDraggingDown) {
-      preventScroll.value = true
+      preventContentScroll.value = true
     }
 
     if (currentTranslateY.value === 0 && isScrollAtTop && !isDraggingDown) {
-      preventScroll.value = false
+      preventContentScroll.value = false
     }
   } else {
     if (!props.expandOnContentDrag) {
-      preventScroll.value = false
+      preventContentScroll.value = false
 
       return
     }
 
-    preventScroll.value = true
+    preventContentScroll.value = true
 
     if (isAtTheTop) {
       if (isDraggingDown && isScrollAtTop) {
-        preventScroll.value = true
+        preventContentScroll.value = true
       }
 
       if (!isDraggingDown && isScrollAtTop) {
-        preventScroll.value = false
+        preventContentScroll.value = false
       }
 
       if (!isScrollAtTop) {
-        preventScroll.value = false
+        preventContentScroll.value = false
       }
     }
   }
@@ -346,20 +335,20 @@ const handleContentPan = (_: PointerEvent, info: PanInfo) => {
   }
 
   if (!props.expandOnContentDrag) {
-    preventScroll.value = false
+    preventContentScroll.value = false
     return
   }
 
   if (!sheet.value) return
 
-  if (translateY.value === 0 && preventScroll.value && props.expandOnContentDrag) {
+  if (translateY.value === 0 && preventContentScroll.value && props.expandOnContentDrag) {
     height.value -= info.delta.y
   }
 
   if (height.value <= minSnapPoint.value) {
     height.value = minSnapPoint.value
 
-    if (preventScroll.value && props.expandOnContentDrag) {
+    if (preventContentScroll.value && props.expandOnContentDrag) {
       translateY.value += info.delta.y
     }
 
@@ -381,7 +370,7 @@ const handleContentPan = (_: PointerEvent, info: PanInfo) => {
   const hasSingleSnapPoint = flattenedSnapPoints.value.length === 1
   if (!hasSingleSnapPoint) {
     if (height.value === maxSnapPoint.value) {
-      preventScroll.value = false
+      preventContentScroll.value = false
     }
   }
 
@@ -396,9 +385,23 @@ const handleContentPan = (_: PointerEvent, info: PanInfo) => {
   }
 }
 
+const touchStart = () => {
+  if (!props.blocking) {
+    isWindowScrollLocked.value = true
+    isWindowRootScrollLocked.value = true
+  }
+}
+
+const touchEnd = () => {
+  if (!props.blocking) {
+    isWindowScrollLocked.value = false
+    isWindowRootScrollLocked.value = false
+  }
+}
+
 const debouncedSnapToPoint = funnel((index) => snapToPoint(index), {
   minQuietPeriodMs: props.duration,
-  reducer: (prev: number | undefined, index: number) => index,
+  reducer: (_prev: number | undefined, index: number) => index,
 })
 
 watch(snapPointsRef, (value, oldValue) => {
@@ -472,6 +475,8 @@ defineExpose({ open, close, snapToPoint })
           aria-modal="true"
           data-vsbs-sheet
           tabindex="-1"
+          @touchstart="touchStart"
+          @touchend="touchEnd"
         >
           <Motion
             ref="sheetHeader"
@@ -533,7 +538,14 @@ defineExpose({ open, close, snapToPoint })
   z-index: 1;
 }
 
-[data-vsbs-shadow='true'] {
+[data-vsbs-shadow='true']::before {
+  content: '';
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  height: 100lvh;
+  width: 100%;
+  border-radius: var(--vsbs-border-radius, 16px);
   box-shadow: 0 -5px 60px 0 var(--vsbs-shadow-color, rgba(89, 89, 89, 0.2));
 }
 
@@ -584,7 +596,7 @@ defineExpose({ open, close, snapToPoint })
 
 [data-vsbs-header]:empty {
   box-shadow: none;
-  padding: 12px var(--vsbs-padding-x, 16px) 8px;
+  padding: 14px var(--vsbs-padding-x, 16px) 10px;
 }
 
 [data-vsbs-footer] {
