@@ -70,6 +70,10 @@ const currentTranslateY = computed(() =>
   translateYToNumber(currentTranslateYTemplate.value, sheetHeight.value),
 )
 
+function isPercentHeight(height: number | `${number}%`): height is `${number}%` {
+  return typeof height === 'string' && height.endsWith('%')
+}
+
 const { snapPoints: propSnapPoints } = toRefs(props)
 const snapPointsRef = computed(() => propSnapPoints.value ?? [instinctHeightComputed.value])
 const {
@@ -161,7 +165,7 @@ const open = async () => {
 
   if (props.blocking) {
     setTimeout(() => {
-      if (parseInt(currentTranslateYTemplate.value.replace('%', '')) - 0 < 0.1) {
+      if (currentTranslateY.value < 1) {
         emit('opened')
         focusTrap.activate()
       }
@@ -198,19 +202,28 @@ const snapToPoint = (index: number) => {
 
   currentSnapPointIndex.value = index
 
-  const snapPoint =
-    typeof snapPointsRef.value[index] === 'number'
-      ? clamp(snapPointsRef.value[index], {
-          max: windowHeight.value,
-        })
-      : snapPointsRef.value[index]
+  let snapPoint
+  if (typeof snapPointsRef.value[index] === 'number') {
+    snapPoint = clamp(snapPointsRef.value[index], {
+      max: windowHeight.value,
+    })
+  } else {
+    snapPoint = snapPointsRef.value[index]
+  }
 
   height.value = snapPoint
-
   controls.start({
     height: height.value,
     y: 0,
   })
+}
+
+function emitDragDirection(deltaY: number) {
+  if (deltaY > 0) {
+    emit('dragging-down')
+  } else if (deltaY < 0) {
+    emit('dragging-up')
+  }
 }
 
 const handlePanStart = () => {
@@ -220,9 +233,12 @@ const handlePanStart = () => {
   controls.stop()
 }
 
-const handlePan = (_: PointerEvent, info: PanInfo) => {
+const handlePan = async (_: PointerEvent, info: PanInfo) => {
+  await nextTick()
+
   if (!sheet.value) return
-  if (typeof height.value == 'string') {
+
+  if (isPercentHeight(height.value)) {
     height.value = heightPercentToPixels(height.value)
   }
 
@@ -249,11 +265,7 @@ const handlePan = (_: PointerEvent, info: PanInfo) => {
     }),
   })
 
-  if (info.delta.y > 0) {
-    emit('dragging-down')
-  } else if (info.delta.y < 0) {
-    emit('dragging-up')
-  }
+  emitDragDirection(info.delta.y)
 }
 
 const handlePanEnd = () => {
@@ -274,12 +286,15 @@ const handlePanEnd = () => {
   }
 
   currentSnapPointIndex.value = closestSnapPointIndex.value
-  const snapPoint =
-    typeof snapPointsRef.value[closestSnapPointIndex.value] === 'number'
-      ? clamp(snapPointsRef.value[closestSnapPointIndex.value] as number, {
-          max: windowHeight.value,
-        })
-      : snapPointsRef.value[closestSnapPointIndex.value]
+
+  let snapPoint
+  if (typeof snapPointsRef.value[closestSnapPointIndex.value] === 'number') {
+    snapPoint = clamp(snapPointsRef.value[closestSnapPointIndex.value] as number, {
+      max: windowHeight.value,
+    })
+  } else {
+    snapPoint = snapPointsRef.value[closestSnapPointIndex.value]
+  }
 
   height.value = snapPoint
 
@@ -289,9 +304,12 @@ const handlePanEnd = () => {
 const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
   height.value = sheetHeight.value
   translateY.value = currentTranslateY.value
+
   controls.stop()
 
-  const isScrollAtTop = sheetScroll.value!.scrollTop === 0
+  if (!sheetScroll.value) return
+
+  const isScrollAtTop = sheetScroll.value.scrollTop === 0
   const isDraggingDown = info.delta.y > 0
   const hasSingleSnapPoint = flattenedSnapPoints.value.length === 1
   const isAtTheTop = 0.5 > Math.abs(height.value - maxSnapPoint.value)
@@ -329,7 +347,9 @@ const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
   }
 }
 
-const handleContentPan = (_: PointerEvent, info: PanInfo) => {
+const handleContentPan = async (_: PointerEvent, info: PanInfo) => {
+  await nextTick()
+
   if (typeof height.value == 'string') {
     height.value = heightPercentToPixels(height.value)
   }
@@ -378,11 +398,7 @@ const handleContentPan = (_: PointerEvent, info: PanInfo) => {
     height: height.value,
   })
 
-  if (info.delta.y > 0) {
-    emit('dragging-down')
-  } else if (info.delta.y < 0) {
-    emit('dragging-up')
-  }
+  emitDragDirection(info.delta.y)
 }
 
 const touchStart = () => {
