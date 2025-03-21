@@ -156,9 +156,11 @@ const open = async () => {
     height: height.value,
   })
 
-  controls.start({
-    height: height.value,
-    y: 0,
+  setTimeout(() => {
+    controls.start({
+      height: height.value,
+      y: 0,
+    })
   })
 
   window.addEventListener('keydown', handleEscapeKey)
