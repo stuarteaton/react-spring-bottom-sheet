@@ -38,7 +38,6 @@ const close = () => {
 
 <style>
 .content {
-  height: calc(100dvh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;

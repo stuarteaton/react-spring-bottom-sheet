@@ -30,9 +30,7 @@ const close = () => {
       <details class="mb-4">
         <summary>Tap to expand</summary>
         <div class="py-4">
-          <Placeholder class="h-8" />
           <p class="my-5">It adjusts its height based on the content.</p>
-          <Placeholder class="h-8" />
         </div>
       </details>
       <button type="button" class="mb-4" @click="close">Close bottom sheet</button>
@@ -42,7 +40,6 @@ const close = () => {
 
 <style>
 .content {
-  height: calc(100dvh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;

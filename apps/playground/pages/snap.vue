@@ -5,13 +5,16 @@ import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
 import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
-const maxHeight = ref(0)
-const minHeight = ref(0)
+const instinctHeight = ref(0)
 
 const expandOnContentDrag = ref(true)
 
 const open = () => {
   bottomSheet.value?.open()
+}
+
+const close = () => {
+  bottomSheet.value?.close()
 }
 
 const snapToPoint = (snapPoint: number) => {
@@ -27,16 +30,18 @@ const snapToPoint = (snapPoint: number) => {
   <ClientOnly>
     <BottomSheet
       ref="bottomSheet"
+      :blocking="true"
+      :can-overlay-close="true"
       :can-swipe-close="false"
       :expand-on-content-drag="expandOnContentDrag"
-      :snap-points="[maxHeight / 3, maxHeight / 1.5, maxHeight]"
-      @min-height="(n) => (minHeight = n)"
-      @max-height="(n) => (maxHeight = n)"
+      :snap-points="['90%', '50%', 250, instinctHeight]"
+      @instinct-height="(n) => (instinctHeight = n)"
     >
       <div class="button-group">
-        <button type="button" @click="snapToPoint(maxHeight)">Top</button>
-        <button type="button" @click="snapToPoint(maxHeight / 1.5)">Middle</button>
-        <button type="button" @click="snapToPoint(maxHeight / 3)">Bottom</button>
+        <button type="button" @click="snapToPoint(0)">Top</button>
+        <button type="button" @click="snapToPoint(1)">Middle</button>
+        <button type="button" @click="snapToPoint(2)">Bottom</button>
+        <button type="button" @click="snapToPoint(3)">Instinct</button>
       </div>
       <button
         type="button"
@@ -45,17 +50,19 @@ const snapToPoint = (snapPoint: number) => {
       >
         {{ expandOnContentDrag ? 'Enable' : 'Disable' }} expand on content drag
       </button>
-      <p v-for="i in 14" :key="i">
+      <p v-for="i in 4" :key="i">
         Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet
         veniam officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
       </p>
+      <template #footer>
+        <button type="button" @click="close">Close bottom sheet</button>
+      </template>
     </BottomSheet>
   </ClientOnly>
 </template>
 
 <style>
 .content {
-  height: calc(100dvh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;
