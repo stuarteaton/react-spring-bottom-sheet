@@ -82,7 +82,7 @@ const {
   closestSnapPointIndex,
   minSnapPoint,
   maxSnapPoint,
-} = useSnapPoints(snapPointsRef, height)
+} = useSnapPoints(snapPointsRef, height, windowHeight)
 
 function template({ y }: TransformProperties) {
   currentTranslateYTemplate.value = y as string
@@ -241,7 +241,7 @@ const handlePan = async (_: PointerEvent, info: PanInfo) => {
   if (!sheet.value) return
 
   if (isPercentHeight(height.value)) {
-    height.value = heightPercentToPixels(height.value)
+    height.value = heightPercentToPixels(height.value, windowHeight.value)
   }
 
   if (translateY.value <= 0) {
@@ -272,7 +272,7 @@ const handlePan = async (_: PointerEvent, info: PanInfo) => {
 
 const handlePanEnd = () => {
   if (typeof height.value == 'string') {
-    height.value = heightPercentToPixels(height.value)
+    height.value = heightPercentToPixels(height.value, windowHeight.value)
   }
 
   translateY.value = props.canSwipeClose
@@ -353,7 +353,7 @@ const handleContentPan = async (_: PointerEvent, info: PanInfo) => {
   await nextTick()
 
   if (typeof height.value == 'string') {
-    height.value = heightPercentToPixels(height.value)
+    height.value = heightPercentToPixels(height.value, windowHeight.value)
   }
 
   if (!props.expandOnContentDrag) {

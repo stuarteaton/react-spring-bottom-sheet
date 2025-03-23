@@ -4,13 +4,14 @@ import { heightPercentToPixels } from '../utils/heightPercentToPixels'
 export function useSnapPoints(
   snapPoints: Ref<Array<number | `${number}%`>>,
   height: Ref<number | `${number}%`>,
+  windowHeight: Ref<number>,
 ) {
   const currentSnapPointIndex = ref(0)
 
   const flattenedSnapPoints = computed(() => {
     return snapPoints.value.map((snapPoint) => {
       if (typeof snapPoint === 'string' && snapPoint.endsWith('%')) {
-        return heightPercentToPixels(snapPoint)
+        return heightPercentToPixels(snapPoint, windowHeight.value)
       }
 
       return snapPoint as number
@@ -22,7 +23,9 @@ export function useSnapPoints(
 
   const closestSnapPointIndex = computed(() => {
     const heightValue =
-      typeof height.value === 'string' ? heightPercentToPixels(height.value) : height.value
+      typeof height.value === 'string'
+        ? heightPercentToPixels(height.value, windowHeight.value)
+        : height.value
 
     const closest = flattenedSnapPoints.value.reduce((prev, curr) =>
       Math.abs(curr - heightValue) < Math.abs(prev - heightValue) ? curr : prev,

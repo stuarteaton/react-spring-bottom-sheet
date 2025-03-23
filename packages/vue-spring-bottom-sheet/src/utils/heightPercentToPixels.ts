@@ -1,5 +1,5 @@
-export function heightPercentToPixels(heightStr: string): number {
+export function heightPercentToPixels(heightStr: string, windowHeight: number): number {
   const percentage = parseFloat(heightStr)
 
-  return (window.innerHeight * percentage) / 100
+  return (windowHeight * percentage) / 100
 }
