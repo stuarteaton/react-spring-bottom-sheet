@@ -1,9 +1,9 @@
-<script>
-// Use a static import for server-side compatibility
-import '~/assets/css/style.css'
-</script>
-
 <template>
-  <NavigationBar />
-  <NuxtPage />
+  <div>
+    <NuxtRouteAnnouncer />
+
+    <NuxtLayout fallback="default">
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
 </template>

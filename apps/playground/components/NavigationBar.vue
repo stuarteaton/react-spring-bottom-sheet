@@ -1,41 +1,18 @@
 <template>
-  <nav class="navbar">
-    <ul class="nav-list">
-      <RouterLink to="/" class="nav-item">Basic</RouterLink>
-      <RouterLink to="/snap" class="nav-item">Snap point & content drag</RouterLink>
-      <RouterLink to="/sticky" class="nav-item">Sticky Header & Footer</RouterLink>
-      <RouterLink to="/blocking" class="nav-item">Non-blocking mode</RouterLink>
+  <nav class="max-w-5xl w-full mx-auto mb-10 px-5">
+    <ul class="grid gap-4 grid-cols-2 lg:grid-cols-4 justify-between text-sm lg:text-base">
+      <li class="flex justify-center">
+        <ULink to="/">Basic</ULink>
+      </li>
+      <li class="flex justify-center">
+        <ULink to="/snap">Snap point & content drag</ULink>
+      </li>
+      <li class="flex justify-center">
+        <ULink to="/sticky">Sticky Header & Footer</ULink>
+      </li>
+      <li class="flex justify-center">
+        <ULink to="/blocking">Non-blocking mode</ULink>
+      </li>
     </ul>
   </nav>
 </template>
-
-<style scoped>
-.navbar {
-  background-color: #e6e6e6;
-  font-size: 14px;
-}
-
-.nav-list {
-  list-style: none;
-  display: flex;
-  justify-content: space-around;
-  margin: 0;
-}
-
-.nav-item {
-  color: black;
-  text-decoration: none;
-  padding: 1rem;
-  transition:
-    color 150ms ease-in-out,
-    background-color 150ms ease-in-out;
-}
-
-.nav-item:hover {
-  background-color: #cfcfcf;
-}
-
-.nav-item.router-link-active {
-  color: #646cff;
-}
-</style>

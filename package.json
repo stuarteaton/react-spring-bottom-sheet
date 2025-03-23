@@ -5,7 +5,13 @@
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "dev": "concurrently \"cd apps/playground && bun run dev --host\" \"cd packages/vue-spring-bottom-sheet && bun run dev\""
+  },
   "dependencies": {
     "@douxcode/vue-spring-bottom-sheet": "workspace:*"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }
