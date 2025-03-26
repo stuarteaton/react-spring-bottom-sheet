@@ -96,7 +96,7 @@ const snapToPoint = (snapPoint: number) => {
       >
         {{ expandOnContentDrag ? 'Enable' : 'Disable' }} expand on content drag
       </UButton>
-      <p v-for="i in 4" :key="i">
+      <p v-for="i in 14" :key="i">
         Lorem ipsum, dolor sit amet consectetur adipisicing elit. Iste aperiam, accusamus amet
         veniam officiis libero necessitatibus ipsum, reprehenderit eveniet neque ad delectus fugit!
       </p>
