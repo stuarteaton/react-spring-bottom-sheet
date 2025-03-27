@@ -318,17 +318,23 @@ const handleContentPanStart = (_: PointerEvent, info: PanInfo) => {
   const isAtTheTop = 0.5 > Math.abs(height.value - maxSnapPoint.value)
 
   if (hasSingleSnapPoint) {
-    // if (translateYValue.get() === 0 && isScrollAtTop && isDraggingDown) {
-    //   preventContentScroll.value = true
-    // }
-    // if (translateYValue.get() === 0 && isScrollAtTop && !isDraggingDown) {
-    //   preventContentScroll.value = false
-    // }
+    if (!props.expandOnContentDrag) {
+      preventContentScroll.value = false
+      return
+    }
+
+    if (translateYValue.get() === 0 && isScrollAtTop && isDraggingDown) {
+      preventContentScroll.value = true
+    }
+    if (translateYValue.get() === 0 && isScrollAtTop && !isDraggingDown) {
+      preventContentScroll.value = false
+    }
   } else {
     if (!props.expandOnContentDrag) {
       preventContentScroll.value = false
       return
     }
+
     preventContentScroll.value = true
     if (isAtTheTop) {
       if (isDraggingDown && isScrollAtTop) {
@@ -406,6 +412,14 @@ const touchEnd = () => {
     isWindowScrollLocked.value = false
     isWindowRootScrollLocked.value = false
   }
+}
+
+const scrollEnd = () => {
+  if (!sheetScroll.value) return
+
+  const isScrollAtTop = sheetScroll.value.scrollTop === 0
+
+  preventContentScroll.value = isScrollAtTop
 }
 
 const debouncedSnapToPoint = funnel((index) => snapToPoint(index), {
@@ -495,7 +509,7 @@ defineExpose({ open, close, snapToPoint })
           >
             <slot name="header" />
           </Motion>
-          <div ref="sheetScroll" data-vsbs-scroll>
+          <div ref="sheetScroll" data-vsbs-scroll @scrollend="scrollEnd">
             <Motion
               ref="sheetContentWrapper"
               data-vsbs-content-wrapper
