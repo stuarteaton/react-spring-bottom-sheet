@@ -136,9 +136,30 @@ const open = async () => {
     (point) => point === minSnapPoint.value,
   )
 
-  height.value = clamp(minSnapPoint.value, {
-    max: windowHeight.value,
-  })
+  if (props.initialSnapPoint) {
+    const index = props.initialSnapPoint
+
+    if (index < 0 || index >= snapPointsRef.value.length) {
+      console.warn('Index out of bounds')
+      return
+    }
+
+    let snapPoint
+    if (typeof snapPointsRef.value[index] === 'number') {
+      snapPoint = clamp(snapPointsRef.value[index], {
+        max: windowHeight.value,
+      })
+    } else {
+      snapPoint = heightPercentToPixels(snapPointsRef.value[index], windowHeight.value)
+    }
+
+    height.value = snapPoint
+  } else {
+    height.value = clamp(minSnapPoint.value, {
+      max: windowHeight.value,
+    })
+  }
+
   translateY.value = height.value
 
   heightValue.set(height.value)

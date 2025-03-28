@@ -77,10 +77,10 @@ const snapToPoint = (snapPoint: number) => {
     <BottomSheet
       ref="bottomSheet"
       :blocking="true"
-      :can-overlay-close="true"
       :can-swipe-close="false"
+      :initial-snap-point="1"
       :expand-on-content-drag="expandOnContentDrag"
-      :snap-points="['90%', '50%', 250, instinctHeight]"
+      :snap-points="['90%', '50%', 250, instinctHeight / 2]"
       @instinct-height="(n) => (instinctHeight = n)"
     >
       <div class="button-group">
