@@ -55,6 +55,9 @@ import { ref } from 'vue'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
 
+/* For vue 3.5+ you can use useTemplateRef() */
+const bottomSheet = useTemplateRef('bottomSheet')
+
 const open = () => {
   bottomSheet.value.open()
 }
