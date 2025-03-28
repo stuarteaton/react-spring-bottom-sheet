@@ -148,3 +148,5 @@ This project was inspired by the following:
 - [@webzlodimir/vue-bottom-sheet]: 🔥 A nice clean and touch-friendly bottom sheet component based on Vue.js and Hammer.js for Vue 3
 
 [motion-v]: https://motion.unovue.com/
+[react-spring-bottom-sheet]: https://react-spring.bottom-sheet.dev/
+[@webzlodimir/vue-bottom-sheet]: https://github.com/vaban-ru/vue-bottom-sheet
