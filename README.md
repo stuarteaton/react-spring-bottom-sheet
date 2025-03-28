@@ -1,6 +1,6 @@
 # Vue Spring Bottom Sheet
 
-**vue-spring-bottom-sheet** is built on top of **[@vueuse/gesture]** and **[@vueuse/motion]**.
+**vue-spring-bottom-sheet** is built on top of **[motion-v]**.
 
 😎 **Modern** and 🚀 **Performant** Bottom Sheet for Vue.js
 
@@ -54,6 +54,9 @@ import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 import { ref } from 'vue'
 
 const bottomSheet = ref<InstanceType<typeof BottomSheet>>()
+
+/* For vue 3.5+ you can use useTemplateRef() */
+const bottomSheet = useTemplateRef('bottomSheet')
 
 const open = () => {
   bottomSheet.value.open()
@@ -110,48 +113,35 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 
 ### Prop Definitions
 
-| Prop                | Type     | Description                                                                                         | Example                          |
-| ------------------- | -------- | --------------------------------------------------------------------------------------------------- | -------------------------------- |
-| duration            | Number   | Defines the duration open and close animations.                                                     | `:duration="250"`                |
-| snapPoints          | Number[] | Defines custom snapping positions for the bottom sheet                                              | `:snapPoints="[300, 600, 900]"`  |
-| defaultSnapPoint    | Number   | Specifies the default snap point. Note that at least one snapPoint must be specified for it to work | `:default-snap-point="600"`      |
-| blocking            | Boolean  | Controls whether the bottom sheet blocks interactions with underlying content                       | `:blocking="true"`               |
-| canSwipeClose       | Boolean  | Enables or disables swipe gestures for closing the sheet                                            | `:can-swipe-close="true"`        |
-| canOverlayClose     | Boolean  | Allows tapping the overlay to close the sheet                                                       | `:can-overlay-close="true"`      |
-| expandOnContentDrag | Boolean  | Enables expanding the sheet by dragging its content                                                 | `:expand-on-content-drag="true"` |
-
-### Default Values
-
-| Prop                | Default                    |
-| ------------------- | -------------------------- |
-| duration            | `250`                      |
-| snapPoints          | `minHeight`                |
-| defaultSnapPoint    | `minHeight / minSnapPoint` |
-| blocking            | `true`                     |
-| canSwipeClose       | `true`                     |
-| canOverlayClose     | `true`                     |
-| expandOnContentDrag | `true`                     |
+| Prop                | Type                  | Default          | Description                                |
+| ------------------- | --------------------- | ---------------- | ------------------------------------------ |
+| duration            | Number                | 250              | Animation duration in milliseconds         |
+| snapPoints          | Array<number\|string> | [instinctHeight] | Custom snapping positions                  |
+| initialSnapPoint    | Number                | minHeight        | Initial snap point index                   |
+| blocking            | Boolean               | true             | Block interactions with underlying content |
+| canSwipeClose       | Boolean               | true             | Enable swipe-to-close gesture              |
+| canOverlayClose     | Boolean               | true             | Allow closing by tapping backdrop          |
+| expandOnContentDrag | Boolean               | true             | Enable expanding by dragging content       |
 
 ## Exposed methods
 
 Assuming there is `const bottomSheet = ref()`
 
-| Method      | Description                          | Example                              |
-| ----------- | ------------------------------------ | ------------------------------------ |
-| snapToPoint | Snaps the sheet to a specified point | `bottomSheet.value.snapToPoint(300)` |
-| open        | Opens the bottom sheet               | `bottomSheet.value.open()`           |
-| close       | Closes the bottom sheet              | `bottomSheet.value.close()`          |
+| Method      | Description               | Example                              |
+| ----------- | ------------------------- | ------------------------------------ |
+| open        | Opens the bottom sheet    | `bottomSheet.value.open()`           |
+| close       | Closes the bottom sheet   | `bottomSheet.value.close()`          |
+| snapToPoint | Snaps to a specific point | `bottomSheet.value.snapToPoint(300)` |
 
 ## Events
 
-| Event         | Description                                                                                                                                   | Example                     |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| min-height    | Fires when the minimum height of the sheet changes. Passes the value as an argument.                                                          | `@min-height="(n) => {}"`   |
-| max-height    | Fires when the height of the window changes. Passes the value as an argument. Note that this value is throttled to prevent excessive updates. | `@max-height="(n) => {}"`   |
-| dragging-up   | Fires when the bottom sheet is being dragged up                                                                                               | `@dragging-up="() => {}"`   |
-| dragging-down | Fires when the bottom sheet is being dragged down                                                                                             | `@dragging-down="() => {}"` |
-| opened        | Fires when the bottom sheet is opened                                                                                                         | `@opened="() => {}"`        |
-| closed        | Fires when the bottom sheet is closed                                                                                                         | `@closed="() => {}"`        |
+| Event          | Description                            | Payload         |
+| -------------- | -------------------------------------- | --------------- |
+| opened         | Emitted when sheet finishes opening    | -               |
+| closed         | Emitted when sheet finishes closing    | -               |
+| dragging-up    | Emitted when user drags sheet upward   | -               |
+| dragging-down  | Emitted when user drags sheet downward | -               |
+| instinctHeight | Emitted when content height changes    | height (number) |
 
 ## Acknowledgments
 
@@ -160,7 +150,6 @@ This project was inspired by the following:
 - [react-spring-bottom-sheet]: Accessible ♿️, Delightful ✨, & Fast 🚀
 - [@webzlodimir/vue-bottom-sheet]: 🔥 A nice clean and touch-friendly bottom sheet component based on Vue.js and Hammer.js for Vue 3
 
-[@vueuse/gesture]: https://gesture.vueuse.org/
-[@vueuse/motion]: https://motion.vueuse.org/
+[motion-v]: https://motion.unovue.com/
 [react-spring-bottom-sheet]: https://react-spring.bottom-sheet.dev/
 [@webzlodimir/vue-bottom-sheet]: https://github.com/vaban-ru/vue-bottom-sheet

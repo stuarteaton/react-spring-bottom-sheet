@@ -1,94 +1,17 @@
 {
-  "name": "@douxcode/vue-spring-bottom-sheet",
-  "description": "Modern and Performant Bottom Sheet for Vue.js",
-  "keywords": [
-    "animation",
-    "bottom-drawer",
-    "bottom-sheet",
-    "bottomsheet",
-    "dialog",
-    "drag-drop",
-    "draggableview",
-    "drawer",
-    "gesture-control",
-    "modal",
-    "motion",
-    "overlay",
-    "popup",
-    "vue",
-    "vueuse/motion",
-    "vueuse/gesture",
-    "sheet",
-    "typescript"
+  "name": "vue-spring-bottom-sheet-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ],
-  "author": "Arion Paul",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/megaarmos/vue-spring-bottom-sheet.git"
-  },
-  "homepage": "https://vue-spring-bottom-sheet.douxcode.com/",
-  "bugs": {
-    "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
-  },
-  "private": false,
-  "version": "1.2.7",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs"
-    },
-    "./dist/style.css": {
-      "import": "./dist/style.css",
-      "require": "./dist/style.css"
-    }
-  },
-  "main": "./dist/index.mjs",
-  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vue-tsc -b && vite build",
-    "build:watch": "vite build --watch",
-    "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/",
-    "release": "npm run build && npm publish --access public"
-  },
-  "peerDependencies": {
-    "@vueuse/gesture": "^2.0.0",
-    "@vueuse/motion": "^2.2.6",
-    "vue": ">=3.3"
+    "dev": "concurrently \"cd apps/playground && bun run dev --host\" \"cd packages/vue-spring-bottom-sheet && bun run dev\""
   },
   "dependencies": {
-    "@vueuse/core": "^12.5.0",
-    "@vueuse/gesture": "^2.0.0",
-    "@vueuse/integrations": "^12.5.0",
-    "@vueuse/motion": "^2.2.6",
-    "focus-trap": "^7.6.4",
-    "remeda": "^2.20.0",
-    "vue": "^3.5.13"
+    "@douxcode/vue-spring-bottom-sheet": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.10.10",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "@vue/eslint-config-typescript": "^14.3.0",
-    "@vue/tsconfig": "^0.7.0",
-    "ajv": "^8.17.1",
-    "eslint": "^9.19.0",
-    "eslint-plugin-vue": "^9.32.0",
-    "prettier": "^3.4.2",
-    "typescript": "~5.6.3",
-    "vite": "^6.0.11",
-    "vite-plugin-dts": "^4.5.0",
-    "vue-tsc": "^2.2.0"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "publishConfig": {
-    "access": "public"
+    "concurrently": "^9.1.2"
   }
 }
