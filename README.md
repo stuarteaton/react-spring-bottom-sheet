@@ -110,15 +110,15 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 
 ### Prop Definitions
 
-| Prop                | Type     | Type        | Description                                |
-| ------------------- | -------- | ----------- | ------------------------------------------ |
-| duration            | Number   | 250         | Animation duration in milliseconds         |
-| snapPoints          | Number[] | [minHeight] | Custom snapping positions                  |
-| initialSnapPoint    | Number   | undefined   | Initial snap point index                   |
-| blocking            | Boolean  | true        | Block interactions with underlying content |
-| canSwipeClose       | Boolean  | true        | Enable swipe-to-close gesture              |
-| canOverlayClose     | Boolean  | true        | Allow closing by tapping backdrop          |
-| expandOnContentDrag | Boolean  | true        | Enable expanding by dragging content       |
+| Prop                | Type                  | Default          | Description                                |
+| ------------------- | --------------------- | ---------------- | ------------------------------------------ |
+| duration            | Number                | 250              | Animation duration in milliseconds         |
+| snapPoints          | Array<number\|string> | [instinctHeight] | Custom snapping positions                  |
+| initialSnapPoint    | Number                | minHeight        | Initial snap point index                   |
+| blocking            | Boolean               | true             | Block interactions with underlying content |
+| canSwipeClose       | Boolean               | true             | Enable swipe-to-close gesture              |
+| canOverlayClose     | Boolean               | true             | Allow closing by tapping backdrop          |
+| expandOnContentDrag | Boolean               | true             | Enable expanding by dragging content       |
 
 ## Exposed methods
 
@@ -132,13 +132,13 @@ Assuming there is `const bottomSheet = ref()`
 
 ## Events
 
-| Event          | Description                           |
-| -------------- | ------------------------------------- |
-| opened         | Triggered when bottom sheet opens     |
-| closed         | Triggered when bottom sheet closes    |
-| dragging-up    | Triggered when dragging up            |
-| dragging-down  | Triggered when dragging down          |
-| instinctHeight | Triggered when content height changes |
+| Event          | Description                            | Payload         |
+| -------------- | -------------------------------------- | --------------- |
+| opened         | Emitted when sheet finishes opening    | -               |
+| closed         | Emitted when sheet finishes closing    | -               |
+| dragging-up    | Emitted when user drags sheet upward   | -               |
+| dragging-down  | Emitted when user drags sheet downward | -               |
+| instinctHeight | Emitted when content height changes    | height (number) |
 
 ## Acknowledgments
 
