@@ -32,7 +32,7 @@
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
   },
   "private": false,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "exports": {
     ".": {
@@ -52,7 +52,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "release": "npm run build && npm publish --access public"
+    "release": "copy ../../README.md . && npm run build && npm publish --access public"
   },
   "peerDependencies": {
     "vue": ">=3.3"
