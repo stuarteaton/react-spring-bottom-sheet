@@ -40,9 +40,7 @@ const sheetContent = ref<HTMLElement | null>(null)
 const backdrop = ref<HTMLElement | null>(null)
 const preventContentScroll = ref(props.expandOnContentDrag)
 
-const { height: windowHeight } = useWindowSize({
-  type: 'visual',
-})
+const { height: windowHeight } = useWindowSize()
 const { height: sheetHeight } = useElementBounding(sheet)
 const { height: sheetHeaderHeight } = useElementBounding(sheetHeader)
 const { height: sheetContentHeight } = useElementBounding(sheetContent)

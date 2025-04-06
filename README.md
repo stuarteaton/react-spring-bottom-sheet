@@ -120,18 +120,18 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 | initialSnapPoint    | Number                | minHeight        | Initial snap point index                   |
 | blocking            | Boolean               | true             | Block interactions with underlying content |
 | canSwipeClose       | Boolean               | true             | Enable swipe-to-close gesture              |
-| canOverlayClose     | Boolean               | true             | Allow closing by tapping backdrop          |
+| canBackdropClose    | Boolean               | true             | Allow closing by tapping backdrop          |
 | expandOnContentDrag | Boolean               | true             | Enable expanding by dragging content       |
 
 ## Exposed methods
 
 Assuming there is `const bottomSheet = ref()`
 
-| Method      | Description               | Example                              |
-| ----------- | ------------------------- | ------------------------------------ |
-| open        | Opens the bottom sheet    | `bottomSheet.value.open()`           |
-| close       | Closes the bottom sheet   | `bottomSheet.value.close()`          |
-| snapToPoint | Snaps to a specific point | `bottomSheet.value.snapToPoint(300)` |
+| Method      | Description                     | Example                            |
+| ----------- | ------------------------------- | ---------------------------------- |
+| open        | Opens the bottom sheet          | `bottomSheet.value.open()`         |
+| close       | Closes the bottom sheet         | `bottomSheet.value.close()`        |
+| snapToPoint | Snaps to an index of snapPoints | `bottomSheet.value.snapToPoint(1)` |
 
 ## Events
 
