@@ -32,7 +32,7 @@
     "url": "https://github.com/megaarmos/vue-spring-bottom-sheet/issues"
   },
   "private": false,
-  "version": "2.0.2",
+  "version": "2.0.3",
   "type": "module",
   "exports": {
     ".": {
@@ -61,7 +61,7 @@
     "@vueuse/core": "^13.0.0",
     "@vueuse/integrations": "^13.0.0",
     "focus-trap": "^7.6.4",
-    "motion-v": "^0.13.1",
+    "motion-v": "^1.0.0-beta.1",
     "remeda": "^2.21.2",
     "vue": "^3.5.13"
   },

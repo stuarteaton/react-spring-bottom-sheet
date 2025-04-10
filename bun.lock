@@ -23,12 +23,12 @@
     },
     "packages/vue-spring-bottom-sheet": {
       "name": "@douxcode/vue-spring-bottom-sheet",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "dependencies": {
         "@vueuse/core": "^13.0.0",
         "@vueuse/integrations": "^13.0.0",
         "focus-trap": "^7.6.4",
-        "motion-v": "^0.13.1",
+        "motion-v": "^1.0.0-beta.1",
         "remeda": "^2.21.2",
         "vue": "^3.5.13",
       },
@@ -1179,7 +1179,7 @@
 
     "motion-utils": ["motion-utils@12.5.0", "", {}, "sha512-+hFFzvimn0sBMP9iPxBa9OtRX35ZQ3py0UHnb8U29VD+d8lQ8zH3dTygJWqK7av2v6yhg7scj9iZuvTS0f4+SA=="],
 
-    "motion-v": ["motion-v@0.13.1", "", { "dependencies": { "@vueuse/core": "^10.0.0", "framer-motion": "12.5.0", "hey-listen": "^1.0.8", "motion-dom": "^12.5.0" }, "peerDependencies": { "vue": ">=3.0.0" } }, "sha512-Hs1p0he2Ee6mhLMkTpB08cvjWT/24b+spJ28O+KzHqFgx34BDyFUIhDJvi6i7QF3BjS2ukgbHQdE3Uy5nVngUA=="],
+    "motion-v": ["motion-v@1.0.0-beta.1", "", { "dependencies": { "@vueuse/core": "^10.0.0", "framer-motion": "12.5.0", "hey-listen": "^1.0.8", "motion-dom": "^12.5.0" }, "peerDependencies": { "vue": ">=3.0.0" } }, "sha512-LHHCmRtLnQVujKwlGS69IFKDJjrqzu/0+5Oc7Uniciy8FNeLWERyZOedXaCDXO5a7a5k9Po8dL3rr6aAySApXw=="],
 
     "mrmime": ["mrmime@2.0.1", "", {}, "sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ=="],
 
