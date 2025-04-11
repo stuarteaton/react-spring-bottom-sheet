@@ -1,4 +1,4 @@
 import BottomSheet from './BottomSheet.vue'
-export * from './types.ts'
+export * from './types'
 
 export default BottomSheet
