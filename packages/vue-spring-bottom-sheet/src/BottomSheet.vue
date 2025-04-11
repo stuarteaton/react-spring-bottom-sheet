@@ -4,7 +4,7 @@ import type { BottomSheetProps } from './types'
 import { Motion, AnimatePresence, useMotionValue, animate } from 'motion-v'
 import type { PanInfo } from 'motion-v'
 
-import { computed, nextTick, onUnmounted, ref, toRefs, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, toRefs, watch , defineModel } from 'vue'
 import { useElementBounding, useScrollLock, useWindowSize } from '@vueuse/core'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints'
@@ -29,7 +29,7 @@ const emit = defineEmits<{
   (e: 'instinctHeight', instinctHeight: number): void
 }>()
 
-const showSheet = ref(false)
+const showSheet = defineModel({ default: false })
 const sheet = ref()
 const sheetHeader = ref<HTMLElement | null>(null)
 const sheetFooter = ref<HTMLElement | null>(null)
