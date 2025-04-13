@@ -9,6 +9,7 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
+    "@douxcode/vue-spring-bottom-sheet": "2.0.4",
     "@nuxt/content": "^3.4.0",
     "@nuxt/ui": "^3.0.2",
     "@wdns/vue-code-block": "^2.3.5",
