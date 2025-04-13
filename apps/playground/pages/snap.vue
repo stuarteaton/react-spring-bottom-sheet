@@ -78,7 +78,6 @@ const snapToPoint = (snapPoint: number) => {
       ref="bottomSheet"
       :blocking="true"
       :can-swipe-close="false"
-      :initial-snap-point="1"
       :expand-on-content-drag="expandOnContentDrag"
       :snap-points="['90%', '50%', 250, instinctHeight / 2]"
       @instinct-height="(n) => (instinctHeight = n)"

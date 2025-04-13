@@ -1,0 +1,17 @@
+{
+  "name": "demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@nuxt/content": "^3.4.0",
+    "@nuxt/ui": "^3.0.2",
+    "@wdns/vue-code-block": "^2.3.5",
+    "nuxt": "^3.16.2"
+  }
+}
