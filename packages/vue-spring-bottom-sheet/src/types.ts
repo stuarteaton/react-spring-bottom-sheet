@@ -6,4 +6,5 @@ export interface BottomSheetProps {
   canSwipeClose?: boolean
   canBackdropClose?: boolean
   expandOnContentDrag?: boolean
+  modelValue?: boolean
 }
