@@ -4,7 +4,7 @@ import type { BottomSheetProps } from './types'
 import { Motion, AnimatePresence, useMotionValue, animate } from 'motion-v'
 import type { PanInfo } from 'motion-v'
 
-import { computed, nextTick, onUnmounted, ref, toRefs, watch , defineModel, onMounted } from 'vue'
+import { computed, nextTick, onUnmounted, ref, toRefs, watch, onMounted } from 'vue'
 import { useElementBounding, useScrollLock, useVModel, useWindowSize } from '@vueuse/core'
 import { useFocusTrap } from '@vueuse/integrations/useFocusTrap'
 import { useSnapPoints } from './composables/useSnapPoints'
