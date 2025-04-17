@@ -162,6 +162,7 @@ Assuming there is `const bottomSheet = ref()`
 | dragging-up    | Emitted when user drags sheet upward   | -               |
 | dragging-down  | Emitted when user drags sheet downward | -               |
 | instinctHeight | Emitted when content height changes    | height (number) |
+| snapped | Emitted when sheet finishes snapping    | snapPointIndex (number) |
 
 ## Acknowledgments
 
