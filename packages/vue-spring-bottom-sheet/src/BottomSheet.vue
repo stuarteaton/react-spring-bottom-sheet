@@ -26,6 +26,7 @@ const emit = defineEmits<{
   (e: 'ready'): void
   (e: 'dragging-up'): void
   (e: 'dragging-down'): void
+  (e: 'snapped', snapPointIndex?: number): void
   (e: 'instinctHeight', instinctHeight: number): void
   (e: 'update:modelValue'): void
 }>()
@@ -243,6 +244,7 @@ const snapToPoint = (index: number) => {
   controls = animate(heightValue, height.value, {
     duration: props.duration / 1000,
     ease: 'easeInOut',
+    onComplete: () => emit('snapped', snapPointsRef.value.indexOf(snapPointsRef.value[index])),
   })
 }
 
@@ -332,6 +334,11 @@ const handlePanEnd = () => {
   controls = animate(heightValue, height.value, {
     duration: props.duration / 1000,
     ease: 'easeInOut',
+    onComplete: () =>
+      emit(
+        'snapped',
+        snapPointsRef.value.indexOf(snapPointsRef.value[closestSnapPointIndex.value]),
+      ),
   })
   controls = animate(translateYValue, 0, {
     duration: props.duration / 1000,
