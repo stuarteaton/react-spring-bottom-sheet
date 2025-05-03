@@ -616,6 +616,10 @@ defineExpose({ open, close, snapToPoint })
   background-color: var(--vsbs-background, #fff);
   border-top-left-radius: var(--vsbs-border-radius, 16px);
   border-top-right-radius: var(--vsbs-border-radius, 16px);
+
+  border-right: 1px solid var(--vsbs-outer-border-color, transparent);
+  border-left: 1px solid var(--vsbs-outer-border-color, transparent);
+
   bottom: 0;
   display: flex;
   flex-direction: column;
@@ -642,6 +646,11 @@ defineExpose({ open, close, snapToPoint })
   padding: 20px var(--vsbs-padding-x, 16px) 8px;
   user-select: none;
   z-index: 3;
+
+  border-top-left-radius: var(--vsbs-border-radius, 16px);
+  border-top-right-radius: var(--vsbs-border-radius, 16px);
+
+  border-top: 1px solid var(--vsbs-outer-border-color, transparent);
 }
 
 [data-vsbs-header]:before {

@@ -76,21 +76,19 @@ const close = () => {
 
 ```vue
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
-import BottomSheet from "@douxcode/vue-spring-bottom-sheet";
-import "@douxcode/vue-spring-bottom-sheet/dist/style.css";
+import BottomSheet from '@douxcode/vue-spring-bottom-sheet'
+import '@douxcode/vue-spring-bottom-sheet/dist/style.css'
 
-const sheet = ref(false);
-
+const sheet = ref(false)
 </script>
 
 <template>
-  <button type="button" @click="sheet = true"> Open bottom sheet </button>
+  <button type="button" @click="sheet = true">Open bottom sheet</button>
   <BottomSheet v-model="sheet"> Your content </BottomSheet>
 </template>
 ```
-
 
 ## Usage in Nuxt 3
 
@@ -123,6 +121,7 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 --vsbs-shadow-color: rgba(89, 89, 89, 0.2);
 --vsbs-background: #fff;
 --vsbs-border-radius: 16px;
+--vsbs-outer-border-color: transparent;
 --vsbs-max-width: 640px;
 --vsbs-border-color: rgba(46, 59, 66, 0.125);
 --vsbs-padding-x: 16px;
@@ -155,13 +154,13 @@ Assuming there is `const bottomSheet = ref()`
 
 ## Events
 
-| Event          | Description                            | Payload         |
-| -------------- | -------------------------------------- | --------------- |
-| opened         | Emitted when sheet finishes opening    | -               |
-| closed         | Emitted when sheet finishes closing    | -               |
-| dragging-up    | Emitted when user drags sheet upward   | -               |
-| dragging-down  | Emitted when user drags sheet downward | -               |
-| instinctHeight | Emitted when content height changes    | height (number) |
+| Event          | Description                            | Payload                 |
+| -------------- | -------------------------------------- | ----------------------- |
+| opened         | Emitted when sheet finishes opening    | -                       |
+| closed         | Emitted when sheet finishes closing    | -                       |
+| dragging-up    | Emitted when user drags sheet upward   | -                       |
+| dragging-down  | Emitted when user drags sheet downward | -                       |
+| instinctHeight | Emitted when content height changes    | height (number)         |
 | snapped        | Emitted when sheet finishes snapping   | snapPointIndex (number) |
 
 ## Acknowledgments
