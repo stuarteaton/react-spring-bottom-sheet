@@ -18,6 +18,8 @@ const props = withDefaults(defineProps<BottomSheetProps>(), {
   canBackdropClose: true,
   expandOnContentDrag: true,
   duration: 250,
+  teleportTo: 'body',
+  teleportDefer: false,
 })
 
 const emit = defineEmits<{
@@ -508,7 +510,7 @@ defineExpose({ open, close, snapToPoint })
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport :to="teleportTo" :defer="teleportDefer">
     <div data-vsbs-container>
       <AnimatePresence>
         <Motion

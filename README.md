@@ -132,15 +132,17 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 
 ### Prop Definitions
 
-| Prop                | Type                  | Default          | Description                                |
-| ------------------- | --------------------- | ---------------- | ------------------------------------------ |
-| duration            | Number                | 250              | Animation duration in milliseconds         |
-| snapPoints          | Array<number\|string> | [instinctHeight] | Custom snapping positions                  |
-| initialSnapPoint    | Number                | minHeight        | Initial snap point index                   |
-| blocking            | Boolean               | true             | Block interactions with underlying content |
-| canSwipeClose       | Boolean               | true             | Enable swipe-to-close gesture              |
-| canBackdropClose    | Boolean               | true             | Allow closing by tapping backdrop          |
-| expandOnContentDrag | Boolean               | true             | Enable expanding by dragging content       |
+| Prop                | Type                      | Default          | Description                                    |
+| ------------------- | ------------------------- | ---------------- | ---------------------------------------------- |
+| duration            | Number                    | 250              | Animation duration in milliseconds             |
+| snapPoints          | Array<number\|string>     | [instinctHeight] | Custom snapping positions                      |
+| initialSnapPoint    | Number                    | minHeight        | Initial snap point index                       |
+| blocking            | Boolean                   | true             | Block interactions with underlying content     |
+| canSwipeClose       | Boolean                   | true             | Enable swipe-to-close gesture                  |
+| canBackdropClose    | Boolean                   | true             | Allow closing by tapping backdrop              |
+| expandOnContentDrag | Boolean                   | true             | Enable expanding by dragging content           |
+| teleprtTo           | String \| RendererElement | body             | Teleport to a specific element                 |
+| teleportDefer       | Boolean                   | false            | Defer teleporting until opened (Vue 3.5+ only) |
 
 ## Exposed methods
 
