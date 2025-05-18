@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-      - run: npm ci --workspace=packages/vue-spring-bottom-sheet
+      - run: npm ci
       - run: npm run prepublishOnly --workspace=packages/vue-spring-bottom-sheet
       - run: npx semantic-release
         env:
