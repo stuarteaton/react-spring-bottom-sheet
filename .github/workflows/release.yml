@@ -20,7 +20,9 @@ jobs:
         run: bun install
 
       - name: Build package
-        run: bun run prepublishOnly
+        run: |
+          cd packages/vue-spring-bottom-sheet
+          bun run prepublishOnly
 
       - name: Run semantic-release
         run: bunx semantic-release
