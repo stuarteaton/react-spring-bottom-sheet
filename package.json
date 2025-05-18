@@ -1,15 +1,24 @@
 {
   "name": "vue-spring-bottom-sheet-monorepo",
   "private": true,
+  "type": "module",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"cd apps/playground && bun run dev --host\" \"cd packages/vue-spring-bottom-sheet && bun run dev\""
+    "dev": "concurrently \"cd apps/playground && bun run dev --host\" \"cd packages/vue-spring-bottom-sheet && bun run dev\"",
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "@douxcode/vue-spring-bottom-sheet": "workspace:*"
+    "@douxcode/vue-spring-bottom-sheet": "workspace:*",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.2",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
+    "semantic-release": "^24.2.4"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

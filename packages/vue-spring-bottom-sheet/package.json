@@ -47,12 +47,13 @@
   "main": "./dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vue-tsc -b && vite build && cp ../../README.md .",
+    "build": "vue-tsc -b && vite build",
     "dev": "vite build --watch",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "release": "cp ../../README.md . && npm run build && npm publish --access public"
+    "release": "cp ../../README.md . && npm run build && npm publish --access public",
+    "prepublishOnly": "cp ../../README.md . && npm run build"
   },
   "peerDependencies": {
     "vue": ">=3.3"
