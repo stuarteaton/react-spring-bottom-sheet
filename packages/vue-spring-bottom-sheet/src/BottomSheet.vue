@@ -689,7 +689,7 @@ defineExpose({ open, close, snapToPoint })
 [data-vsbs-scroll] {
   flex-grow: 1;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
 }
 
 [data-vsbs-content-wrapper] {
