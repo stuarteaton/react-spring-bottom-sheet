@@ -95,6 +95,7 @@ const {
   maxSnapPoint,
 } = useSnapPoints(snapPointsRef, height, windowHeight)
 
+// eslint-disable-next-line
 let controls: any
 
 const isWindowScrollLocked = useScrollLock(document.body)
