@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.2.1...v2.2.2) (2025-05-18)
+
+
+### Bug Fixes
+
+* https://github.com/megaarmos/vue-spring-bottom-sheet/issues/22 ([4cbbbcf](https://github.com/megaarmos/vue-spring-bottom-sheet/commit/4cbbbcf5bf392b11e4752b14230c265063445ae8))
+
 ## [2.2.1](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.2.0...v2.2.1) (2025-05-18)
 
 
