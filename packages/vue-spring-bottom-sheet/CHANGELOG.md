@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.2.2...v2.3.0) (2025-05-19)
+
+
+### Features
+
+* add customizable header, content, and footer classes https://github.com/megaarmos/vue-spring-bottom-sheet/issues/20 ([fbb7b30](https://github.com/megaarmos/vue-spring-bottom-sheet/commit/fbb7b301774803e51edfdce45a09cba3789bcea2))
+
 ## [2.2.2](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.2.1...v2.2.2) (2025-05-18)
 
 
