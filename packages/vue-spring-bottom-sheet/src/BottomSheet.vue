@@ -551,6 +551,7 @@ defineExpose({ open, close, snapToPoint })
             @pan="handlePan"
             @pan-end="handlePanEnd"
             @touchmove="handleTouchMove"
+            :class="headerClass"
           >
             <slot name="header" />
           </Motion>
@@ -563,7 +564,7 @@ defineExpose({ open, close, snapToPoint })
               @pan-end="handlePanEnd"
               @touchmove="handleSheetScroll"
             >
-              <div ref="sheetContent" data-vsbs-content>
+              <div ref="sheetContent" data-vsbs-content :class="contentClass">
                 <slot />
               </div>
             </Motion>
@@ -575,6 +576,7 @@ defineExpose({ open, close, snapToPoint })
             @pan="handlePan"
             @pan-end="handlePanEnd"
             @touchmove="handleTouchMove"
+            :class="footerClass"
           >
             <slot name="footer" />
           </Motion>

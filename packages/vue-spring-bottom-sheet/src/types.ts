@@ -11,4 +11,7 @@ export interface BottomSheetProps {
   modelValue?: boolean
   teleportTo?: string | RendererElement
   teleportDefer?: boolean
+  headerClass?: string
+  contentClass?: string
+  footerClass?: string
 }
