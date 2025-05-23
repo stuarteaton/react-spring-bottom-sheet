@@ -143,6 +143,9 @@ For Nuxt 3, just wrap component in `<ClientOnly>`
 | expandOnContentDrag | Boolean                   | true             | Enable expanding by dragging content           |
 | teleprtTo           | String \| RendererElement | body             | Teleport to a specific element                 |
 | teleportDefer       | Boolean                   | false            | Defer teleporting until opened (Vue 3.5+ only) |
+| headerClass         | String                    | ''               | Set header element class                       |
+| contentClass        | String                    | ''               | Set content element class                      |
+| footerClass         | String                    | ''               | Set footer element class                       |
 
 ## Exposed methods
 
