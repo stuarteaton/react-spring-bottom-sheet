@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.3.0...v2.4.0) (2025-06-09)
+
+
+### Features
+
+* new events; ([cf8490c](https://github.com/megaarmos/vue-spring-bottom-sheet/commit/cf8490c814422cf5d5961f5f9d3986a52ee535df))
+
 # [2.3.0](https://github.com/megaarmos/vue-spring-bottom-sheet/compare/v2.2.2...v2.3.0) (2025-05-19)
 
 
