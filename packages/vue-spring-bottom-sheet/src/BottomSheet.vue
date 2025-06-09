@@ -129,8 +129,8 @@ const backdropClick = () => {
 
 let isOpening = false
 const open = async () => {
-  if (isOpening) return;
-  
+  if (isOpening) return
+
   showSheet.value = true
   isOpening = true
   emit('opening-started')
@@ -215,7 +215,7 @@ const open = async () => {
 let isClosing = false
 const close = () => {
   if (isClosing) return
-  
+
   showSheet.value = false
   isClosing = true
   emit('closing-started')
