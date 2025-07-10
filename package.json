@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@douxcode/vue-spring-bottom-sheet": "workspace:*",
+    "@douxcode/vue-spring-bottom-sheet": "^2.4.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -22,7 +22,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.3",
-    "react-spring-bottom-sheet": "workspace:*",
+    "react-spring-bottom-sheet": "^1.0.0",
     "semantic-release": "^24.2.4"
   },
   "devDependencies": {
