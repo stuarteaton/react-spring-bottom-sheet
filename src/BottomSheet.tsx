@@ -279,9 +279,10 @@ export const BottomSheet = forwardRef<
               <div
                 className={contentClassName}
                 style={{
-                  display: 'grid',
-                  padding: '8px 16px',
+                  display: 'flex',
+                  padding: '0px',
                   userSelect: 'none',
+                  textAlign: 'left',
                   ...contentStyle,
                 }}
               >

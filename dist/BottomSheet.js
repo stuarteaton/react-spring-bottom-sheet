@@ -189,9 +189,10 @@ export const BottomSheet = forwardRef(({ open = false, duration = 250, snapPoint
                             }, children: _jsx("div", { style: {
                                     height: '100%',
                                 }, children: _jsx("div", { className: contentClassName, style: {
-                                        display: 'grid',
-                                        padding: '8px 16px',
+                                        display: 'flex',
+                                        padding: '0px',
                                         userSelect: 'none',
+                                        textAlign: 'left',
                                         ...contentStyle,
                                     }, children: Children.toArray(children) }) }) }), _jsx("div", { className: footerClassName, style: {
                                 boxShadow: '0 -1px 0 rgba(46, 59, 66, 0.125)',
