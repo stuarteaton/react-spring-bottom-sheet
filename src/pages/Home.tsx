@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
+import { BottomSheet } from 'react-ts-bottom-sheet';
 
 const Home: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
