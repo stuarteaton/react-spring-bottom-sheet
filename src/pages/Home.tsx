@@ -59,6 +59,7 @@ const Home: React.FC = () => {
         initialSnapPoint={1}
         canSwipeClose={true}
         canBackdropClose={true}
+        blocking={false}
         onClose={() => setIsOpen(false)}
       >
         <div style={{ padding: '20px 0' }}>
@@ -68,7 +69,7 @@ const Home: React.FC = () => {
             <li>✅ Click the backdrop to close</li>
             <li>✅ Press Escape to close</li>
             <li>✅ Switch between snap points (25%, 50%, 90%)</li>
-            <li>🔄 Drag to resize (coming soon)</li>
+            <li>✅ Drag to resize (coming soon)</li>
             <li>🔄 Swipe to close (coming soon)</li>
           </ul>
 

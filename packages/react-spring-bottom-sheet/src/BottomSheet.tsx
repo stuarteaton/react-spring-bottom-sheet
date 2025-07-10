@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { useSpring, animated } from '@react-spring/web';
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef, Children } from 'react';
+import { motion, useMotionValue, useAnimation } from 'framer-motion';
+// No react-spring
 import type { BottomSheetProps } from './types';
-import { rubberbandIfOutOfBounds } from './rubberbandIfOutOfBounds';
+// rubberbandIfOutOfBounds no longer needed
+import type { Ref } from 'react';
 
 function getClosestSnapPointIndex(snapPoints: (number | string)[], value: number, windowHeight: number): number {
   let minDiff = Infinity;
@@ -18,7 +20,20 @@ function getClosestSnapPointIndex(snapPoints: (number | string)[], value: number
   return closestIndex;
 }
 
-export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, BottomSheetProps>(({
+export const BottomSheet = forwardRef<
+  { snapToPoint: (idx: number) => void },
+  BottomSheetProps & {
+    children?: React.ReactNode;
+    sheetStyle?: React.CSSProperties;
+    sheetClassName?: string;
+    headerStyle?: React.CSSProperties;
+    contentStyle?: React.CSSProperties;
+    footerStyle?: React.CSSProperties;
+    headerClassName?: string;
+    contentClassName?: string;
+    footerClassName?: string;
+  }
+>(({
   open = false,
   duration = 250,
   snapPoints = [50],
@@ -30,20 +45,20 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
   headerClassName = '',
   contentClassName = '',
   footerClassName = '',
+  headerStyle,
+  contentStyle,
+  footerStyle,
   children,
+  sheetStyle,
+  sheetClassName,
   onClose,
   ...props
 }, ref) => {
   const [isVisible, setIsVisible] = useState(open);
-  const [isAnimating, setIsAnimating] = useState(false);
+  // isAnimating removed
   const [currentSnap, setCurrentSnap] = useState(() => initialSnapPoint);
   const sheetRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
-
-  // Drag state refs
-  const dragStartY = useRef<number | null>(null);
-  const dragStartHeight = useRef<number | null>(null);
-  const dragOffset = useRef<number | null>(null);
 
   // Calculate snap heights
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -54,33 +69,31 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
         ? (windowHeight * parseFloat(point) / 100)
         : parseFloat(point as string)
   );
+  // Calculate min/max snap points for drag constraints
+  const minSnap = Math.min(...snapHeights);
+  const maxSnap = Math.max(...snapHeights);
+  // The sheet is positioned from the bottom, so we need to convert snap heights to Y offsets
+  // Y=0 is fully open (maxSnap), Y=maxY is fully closed (minSnap)
+  const minY = windowHeight - maxSnap; // top-most (openest) position
+  const maxY = windowHeight - minSnap; // bottom-most (closedest) position
 
   // React Spring animation
-  const [springs, api] = useSpring(() => ({
-    height: snapHeights[initialSnapPoint],
-    y: snapHeights[initialSnapPoint],
-    config: { 
-      tension: 300, 
-      friction: 30,
-      duration: duration 
-    }
-  }));
+  const controls = useAnimation();
+  const height = useMotionValue(snapHeights[initialSnapPoint]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef<number | null>(null);
+  const dragStartHeight = useRef<number | null>(null);
 
   // Snap to point function (like Vue version)
   const snapToPoint = useCallback((idx: number) => {
     if (idx < 0 || idx >= snapHeights.length) return;
-    
     const targetHeight = snapHeights[idx];
     setCurrentSnap(idx);
-    
-    api.start({
+    controls.start({
       height: targetHeight,
-      y: 0,
-      onRest: () => {
-        console.log('[BottomSheet] Snapped to point', idx);
-      }
+      transition: { type: 'spring', stiffness: 300, damping: 30 }
     });
-  }, [snapHeights, api]);
+  }, [snapHeights, controls]);
 
   // Expose snapToPoint method
   useImperativeHandle(ref, () => ({
@@ -90,20 +103,61 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
   useEffect(() => {
     if (open) {
       setIsVisible(true);
-      setIsAnimating(true);
-      api.start({
+      controls.start({
         height: snapHeights[currentSnap],
-        y: 0,
-        onRest: () => setIsAnimating(false)
+        transition: { type: 'spring', stiffness: 300, damping: 30 }
       });
     } else {
-      setIsAnimating(true);
-      api.start({
-        y: snapHeights[currentSnap],
-        onRest: () => setIsVisible(false)
-      });
+      controls.start({
+        height: 0,
+        transition: { duration: duration / 1000 }
+      }).then(() => setIsVisible(false));
     }
-  }, [open, currentSnap, snapHeights, api]);
+  }, [open, currentSnap, snapHeights, duration, controls]);
+
+  // Rubberband function (like Vue)
+  function rubberbandIfOutOfBounds(val: number, min: number, max: number, constant = 0.15) {
+    if (val < min) {
+      return min - (min - val) * constant;
+    }
+    if (val > max) {
+      return max + (val - max) * constant;
+    }
+    return val;
+  }
+
+  // Pointer event handlers for drag
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    dragStartY.current = e.clientY;
+    dragStartHeight.current = height.get();
+    window.addEventListener('pointermove', handlePointerMove as any, { passive: false });
+    window.addEventListener('pointerup', handlePointerUp as any, { passive: false });
+  };
+
+  const handlePointerMove = (e: PointerEvent) => {
+    if (dragStartY.current === null || dragStartHeight.current === null) return;
+    const delta = dragStartY.current - e.clientY;
+    let newHeight = dragStartHeight.current + delta;
+    newHeight = rubberbandIfOutOfBounds(newHeight, minSnap, maxSnap, 0.15);
+    height.set(newHeight);
+  };
+
+  const handlePointerUp = (e: PointerEvent) => {
+    setIsDragging(false);
+    window.removeEventListener('pointermove', handlePointerMove as any, false);
+    window.removeEventListener('pointerup', handlePointerUp as any, false);
+    const finalHeight = height.get();
+    // If canSwipeClose and dragged below the lowest snap point, close
+    if (canSwipeClose && finalHeight < minSnap - 40 && onClose) {
+      onClose();
+      return;
+    }
+    // Snap to closest snap point
+    const idx = getClosestSnapPointIndex(snapPoints, finalHeight, windowHeight);
+    snapToPoint(idx);
+  };
 
   const handleBackdropClick = () => {
     if (canBackdropClose && onClose) {
@@ -117,69 +171,29 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
     }
   };
 
-  // Helper to check if an element is interactive
-  function isInteractiveElement(target: EventTarget | null): boolean {
-    if (!(target instanceof HTMLElement)) return false;
-    const tag = target.tagName.toLowerCase();
-    return (
-      tag === 'button' ||
-      tag === 'input' ||
-      tag === 'textarea' ||
-      tag === 'select' ||
-      tag === 'a' ||
-      target.isContentEditable
-    );
-  }
-
-  const onPointerMove = useCallback((e: PointerEvent) => {
-    if (dragStartY.current === null || dragStartHeight.current === null) return;
-    const delta = e.clientY - dragStartY.current;
-    let newHeight = dragStartHeight.current - delta;
-    
-    // Apply rubberband effect if out of bounds
-    newHeight = rubberbandIfOutOfBounds(newHeight, Math.min(...snapHeights), Math.max(...snapHeights), 0.15);
-    
-    dragOffset.current = newHeight;
-    api.start({ height: newHeight, immediate: true });
-  }, [snapHeights, api]);
-
-  const onPointerUp = useCallback(() => {
-    if (dragOffset.current !== null) {
-      // If canSwipeClose and dragged below the lowest snap point, close
-      if (canSwipeClose && dragOffset.current < Math.min(...snapHeights) - 40 && onClose) {
-        dragOffset.current = null;
-        dragStartY.current = null;
-        dragStartHeight.current = null;
-        window.removeEventListener('pointermove', onPointerMove, false);
-        window.removeEventListener('pointerup', onPointerUp, false);
-        onClose();
-        return;
-      }
-      
-      // Snap to closest snap point
-      const idx = getClosestSnapPointIndex(snapPoints, dragOffset.current, windowHeight);
-      snapToPoint(idx);
+  // isInteractiveElement no longer needed
+  // Framer Motion drag end handler
+  const handleDragEnd = () => {
+    // info.point.y is the absolute y position of the pointer
+    // We want the sheet's top relative to the window
+    const sheetRect = sheetRef.current?.getBoundingClientRect();
+    if (!sheetRect) return;
+    const sheetTop = sheetRect.top;
+    const fromBottom = windowHeight - sheetTop;
+    // If canSwipeClose and dragged below the lowest snap point, close
+    if (canSwipeClose && fromBottom < minSnap - 40 && onClose) {
+      onClose();
+      return;
     }
-    
-    dragOffset.current = null;
-    dragStartY.current = null;
-    dragStartHeight.current = null;
-    window.removeEventListener('pointermove', onPointerMove, false);
-    window.removeEventListener('pointerup', onPointerUp, false);
-  }, [canSwipeClose, onClose, onPointerMove, snapPoints, snapHeights, windowHeight, snapToPoint]);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (isInteractiveElement(e.target)) return;
-    e.preventDefault();
-    if (e.button !== 0) return;
-    
-    dragStartY.current = e.clientY;
-    dragStartHeight.current = sheetRef.current?.getBoundingClientRect().height ?? snapHeights[currentSnap];
-    dragOffset.current = dragStartHeight.current;
-    
-    window.addEventListener('pointermove', onPointerMove, { passive: false });
-    window.addEventListener('pointerup', onPointerUp, { passive: false });
+    // Snap to closest snap point (from bottom)
+    const idx = getClosestSnapPointIndex(snapPoints, fromBottom, windowHeight);
+    snapToPoint(idx);
   };
+
+  // Clamp a value between min and max
+  function clamp(val: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, val));
+  }
 
   if (!isVisible) return null;
 
@@ -207,18 +221,19 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
             userSelect: 'none',
             willChange: 'opacity',
             zIndex: 1,
-            opacity: isAnimating ? 0 : 1,
+            opacity: isVisible ? 1 : 0,
             transition: `opacity ${duration}ms ease-in-out`,
           }}
         />
       )}
 
       {/* Sheet */}
-      <animated.div
-        ref={sheetRef}
+      <motion.div
+        ref={sheetRef as Ref<HTMLDivElement>}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
         aria-modal="true"
+        className={sheetClassName}
         style={{
           backgroundColor: '#fff',
           borderTopLeftRadius: '16px',
@@ -237,87 +252,100 @@ export const BottomSheet = forwardRef<{ snapToPoint: (idx: number) => void }, Bo
           position: 'fixed',
           right: 0,
           width: '100%',
-          willChange: 'transform, height',
+          willChange: 'height',
           zIndex: 2,
-          cursor: 'grab',
-          userSelect: dragOffset.current !== null ? 'none' : undefined,
-          ...springs,
+          cursor: isDragging ? 'grabbing' : 'grab',
+          userSelect: isDragging ? 'none' : undefined,
+          height,
+          ...sheetStyle,
         }}
+        animate={controls}
+        onPointerDown={handlePointerDown}
       >
-        {/* Header */}
-        <div
-          className={headerClassName}
-          style={{
-            boxShadow: '0 1px 0 rgba(46, 59, 66, 0.125)',
-            flexShrink: 0,
-            padding: '20px 16px 8px',
-            userSelect: 'none',
-            zIndex: 3,
-            borderTopLeftRadius: '16px',
-            borderTopRightRadius: '16px',
-            borderTop: '1px solid transparent',
-            position: 'sticky',
-            top: 0,
-            background: '#fff',
-          }}
-          onPointerDown={onPointerDown}
-        >
-          <div
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.28)',
-              borderRadius: '2px',
-              height: '4px',
-              left: '50%',
-              position: 'absolute',
-              top: '8px',
-              transform: 'translateX(-50%)',
-              width: '36px',
-            }}
-          />
-        </div>
-
-        {/* Content */}
         <div
           style={{
-            flexGrow: 1,
-            overflowY: 'auto',
-            overscrollBehavior: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            width: '100%',
           }}
-          onPointerDown={onPointerDown}
         >
+          {/* Header */}
           <div
+            className={headerClassName}
             style={{
-              height: '100%',
+              boxShadow: '0 1px 0 rgba(46, 59, 66, 0.125)',
+              flexShrink: 0,
+              padding: '20px 16px 8px',
+              userSelect: 'none',
+              zIndex: 3,
+              borderTopLeftRadius: '16px',
+              borderTopRightRadius: '16px',
+              borderTop: '1px solid transparent',
+              position: 'sticky',
+              top: 0,
+              background: '#fff',
+              ...headerStyle,
             }}
           >
             <div
-              className={contentClassName}
               style={{
-                display: 'grid',
-                padding: '8px 16px',
-                userSelect: 'none',
+                backgroundColor: 'rgba(0, 0, 0, 0.28)',
+                borderRadius: '2px',
+                height: '4px',
+                left: '50%',
+                position: 'absolute',
+                top: '8px',
+                transform: 'translateX(-50%)',
+                width: '36px',
+              }}
+            />
+          </div>
+
+          {/* Content */}
+          <div
+            style={{
+              flexGrow: 1,
+              overflowY: 'auto',
+              overscrollBehavior: 'none',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
               }}
             >
-              {children}
+              <div
+                className={contentClassName}
+                style={{
+                  display: 'grid',
+                  padding: '8px 16px',
+                  userSelect: 'none',
+                  ...contentStyle,
+                }}
+              >
+                {Children.toArray(children)}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div
-          className={footerClassName}
-          style={{
-            boxShadow: '0 -1px 0 rgba(46, 59, 66, 0.125)',
-            flexGrow: 0,
-            flexShrink: 0,
-            padding: '16px 16px',
-            userSelect: 'none',
-            position: 'sticky',
-            bottom: 0,
-            background: '#fff',
-          }}
-        />
-      </animated.div>
+          {/* Footer */}
+          <div
+            className={footerClassName}
+            style={{
+              boxShadow: '0 -1px 0 rgba(46, 59, 66, 0.125)',
+              flexGrow: 0,
+              flexShrink: 0,
+              padding: '16px 16px',
+              userSelect: 'none',
+              position: 'sticky',
+              bottom: 0,
+              background: '#fff',
+              ...footerStyle,
+            }}
+          />
+        </div>
+      </motion.div>
     </div>
   );
 });
