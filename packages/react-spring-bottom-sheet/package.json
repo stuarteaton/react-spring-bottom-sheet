@@ -13,10 +13,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@react-spring/web": "^9.7.3",
-    "@use-gesture/react": "^10.3.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "framer-motion": "^11.0.17"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
