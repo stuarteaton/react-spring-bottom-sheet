@@ -9,7 +9,6 @@ const Home: React.FC = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>React Spring Bottom Sheet Playground</h1>
-      <p>Welcome! Use the navigation to try different examples.</p>
       
       <div style={{ marginTop: 24 }}>
         <button 
