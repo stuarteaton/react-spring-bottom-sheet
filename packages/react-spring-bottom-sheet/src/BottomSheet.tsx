@@ -41,7 +41,6 @@ export const BottomSheet = forwardRef<
   blocking = true,
   canSwipeClose = true,
   canBackdropClose = true,
-  expandOnContentDrag = true,
   headerClassName = '',
   contentClassName = '',
   footerClassName = '',
@@ -52,7 +51,6 @@ export const BottomSheet = forwardRef<
   sheetStyle,
   sheetClassName,
   onClose,
-  ...props
 }, ref) => {
   const [isVisible, setIsVisible] = useState(open);
   // isAnimating removed
@@ -74,8 +72,8 @@ export const BottomSheet = forwardRef<
   const maxSnap = Math.max(...snapHeights);
   // The sheet is positioned from the bottom, so we need to convert snap heights to Y offsets
   // Y=0 is fully open (maxSnap), Y=maxY is fully closed (minSnap)
-  const minY = windowHeight - maxSnap; // top-most (openest) position
-  const maxY = windowHeight - minSnap; // bottom-most (closedest) position
+  // const minY = windowHeight - maxSnap; // top-most (openest) position
+  // const maxY = windowHeight - minSnap; // bottom-most (closedest) position
 
   // React Spring animation
   const controls = useAnimation();
@@ -132,8 +130,8 @@ export const BottomSheet = forwardRef<
     setIsDragging(true);
     dragStartY.current = e.clientY;
     dragStartHeight.current = height.get();
-    window.addEventListener('pointermove', handlePointerMove as any, { passive: false });
-    window.addEventListener('pointerup', handlePointerUp as any, { passive: false });
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', handlePointerUp, { passive: false });
   };
 
   const handlePointerMove = (e: PointerEvent) => {
@@ -144,10 +142,10 @@ export const BottomSheet = forwardRef<
     height.set(newHeight);
   };
 
-  const handlePointerUp = (e: PointerEvent) => {
+  const handlePointerUp = () => {
     setIsDragging(false);
-    window.removeEventListener('pointermove', handlePointerMove as any, false);
-    window.removeEventListener('pointerup', handlePointerUp as any, false);
+    window.removeEventListener('pointermove', handlePointerMove, false);
+    window.removeEventListener('pointerup', handlePointerUp, false);
     const finalHeight = height.get();
     // If canSwipeClose and dragged below the lowest snap point, close
     if (canSwipeClose && finalHeight < minSnap - 40 && onClose) {
@@ -173,27 +171,27 @@ export const BottomSheet = forwardRef<
 
   // isInteractiveElement no longer needed
   // Framer Motion drag end handler
-  const handleDragEnd = () => {
-    // info.point.y is the absolute y position of the pointer
-    // We want the sheet's top relative to the window
-    const sheetRect = sheetRef.current?.getBoundingClientRect();
-    if (!sheetRect) return;
-    const sheetTop = sheetRect.top;
-    const fromBottom = windowHeight - sheetTop;
-    // If canSwipeClose and dragged below the lowest snap point, close
-    if (canSwipeClose && fromBottom < minSnap - 40 && onClose) {
-      onClose();
-      return;
-    }
-    // Snap to closest snap point (from bottom)
-    const idx = getClosestSnapPointIndex(snapPoints, fromBottom, windowHeight);
-    snapToPoint(idx);
-  };
+  // const handleDragEnd = () => {
+  //   // info.point.y is the absolute y position of the pointer
+  //   // We want the sheet's top relative to the window
+  //   const sheetRect = sheetRef.current?.getBoundingClientRect();
+  //   if (!sheetRect) return;
+  //   const sheetTop = sheetRect.top;
+  //   const fromBottom = windowHeight - sheetTop;
+  //   // If canSwipeClose and dragged below the lowest snap point, close
+  //   if (canSwipeClose && fromBottom < minSnap - 40 && onClose) {
+  //     onClose();
+  //     return;
+  //   }
+  //   // Snap to closest snap point (from bottom)
+  //   const idx = getClosestSnapPointIndex(snapPoints, fromBottom, windowHeight);
+  //   snapToPoint(idx);
+  // };
 
   // Clamp a value between min and max
-  function clamp(val: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, val));
-  }
+  // function clamp(val: number, min: number, max: number) {
+  //   return Math.max(min, Math.min(max, val));
+  // }
 
   if (!isVisible) return null;
 
