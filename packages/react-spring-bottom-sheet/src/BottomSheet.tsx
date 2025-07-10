@@ -70,10 +70,6 @@ export const BottomSheet = forwardRef<
   // Calculate min/max snap points for drag constraints
   const minSnap = Math.min(...snapHeights);
   const maxSnap = Math.max(...snapHeights);
-  // The sheet is positioned from the bottom, so we need to convert snap heights to Y offsets
-  // Y=0 is fully open (maxSnap), Y=maxY is fully closed (minSnap)
-  // const minY = windowHeight - maxSnap; // top-most (openest) position
-  // const maxY = windowHeight - minSnap; // bottom-most (closedest) position
 
   // React Spring animation
   const controls = useAnimation();
@@ -168,30 +164,6 @@ export const BottomSheet = forwardRef<
       onClose();
     }
   };
-
-  // isInteractiveElement no longer needed
-  // Framer Motion drag end handler
-  // const handleDragEnd = () => {
-  //   // info.point.y is the absolute y position of the pointer
-  //   // We want the sheet's top relative to the window
-  //   const sheetRect = sheetRef.current?.getBoundingClientRect();
-  //   if (!sheetRect) return;
-  //   const sheetTop = sheetRect.top;
-  //   const fromBottom = windowHeight - sheetTop;
-  //   // If canSwipeClose and dragged below the lowest snap point, close
-  //   if (canSwipeClose && fromBottom < minSnap - 40 && onClose) {
-  //     onClose();
-  //     return;
-  //   }
-  //   // Snap to closest snap point (from bottom)
-  //   const idx = getClosestSnapPointIndex(snapPoints, fromBottom, windowHeight);
-  //   snapToPoint(idx);
-  // };
-
-  // Clamp a value between min and max
-  // function clamp(val: number, min: number, max: number) {
-  //   return Math.max(min, Math.min(max, val));
-  // }
 
   if (!isVisible) return null;
 
