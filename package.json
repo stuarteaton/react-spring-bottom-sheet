@@ -1,33 +1,60 @@
 {
-  "name": "monorepo-root",
-  "private": true,
-  "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "name": "react-ts-bottom-sheet",
+  "version": "1.1.0",
+  "description": "A React bottom sheet component with TypeScript support and smooth animations",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "react",
+    "bottom-sheet",
+    "typescript",
+    "framer-motion",
+    "mobile",
+    "ui",
+    "component"
+  ],
+  "author": "Stuart Eaton",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stuarteaton/react-ts-bottom-sheet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stuarteaton/react-ts-bottom-sheet/issues"
+  },
+  "homepage": "https://github.com/stuarteaton/react-ts-bottom-sheet#readme",
   "dependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^13.0.1",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.2",
-    "@semantic-release/npm": "^12.0.1",
-    "@semantic-release/release-notes-generator": "^14.0.3",
-    "framer-motion": "^12.23.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.3",
-    "semantic-release": "^24.2.4"
+    "framer-motion": "^11.0.17"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "concurrently": "^9.1.2",
+    "typescript": "^5.8.3",
     "vite": "^6.3.5"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0 <=19.x",
+    "react-dom": ">=16.8.0 <=19.x"
   }
-}
+} 
