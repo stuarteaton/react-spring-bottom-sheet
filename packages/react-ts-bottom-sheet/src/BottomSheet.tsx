@@ -168,16 +168,7 @@ export const BottomSheet = forwardRef<
   if (!isVisible) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        overflow: 'hidden',
-        pointerEvents: blocking ? 'none' : 'auto',
-        zIndex: 9999,
-        visibility: 'visible',
-      }}
-    >
+    <>
       {/* Backdrop */}
       {blocking && (
         <div
@@ -316,7 +307,7 @@ export const BottomSheet = forwardRef<
           />
         </div>
       </motion.div>
-    </div>
+    </>
   );
 });
 

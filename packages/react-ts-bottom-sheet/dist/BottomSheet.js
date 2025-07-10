@@ -1,4 +1,4 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef, Children } from 'react';
 import { motion, useMotionValue, useAnimation } from 'framer-motion';
 function getClosestSnapPointIndex(snapPoints, value, windowHeight) {
@@ -121,14 +121,7 @@ export const BottomSheet = forwardRef(({ open = false, duration = 250, snapPoint
     };
     if (!isVisible)
         return null;
-    return (_jsxs("div", { style: {
-            position: 'fixed',
-            inset: 0,
-            overflow: 'hidden',
-            pointerEvents: blocking ? 'none' : 'auto',
-            zIndex: 9999,
-            visibility: 'visible',
-        }, children: [blocking && (_jsx("div", { ref: backdropRef, onClick: handleBackdropClick, style: {
+    return (_jsxs(_Fragment, { children: [blocking && (_jsx("div", { ref: backdropRef, onClick: handleBackdropClick, style: {
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     inset: 0,
                     pointerEvents: 'auto',
