@@ -32,6 +32,7 @@ export const BottomSheet = forwardRef<
     headerClassName?: string;
     contentClassName?: string;
     footerClassName?: string;
+    footer?: React.ReactNode;
   }
 >(({
   open = false,
@@ -44,6 +45,7 @@ export const BottomSheet = forwardRef<
   headerClassName = '',
   contentClassName = '',
   footerClassName = '',
+  footer,
   headerStyle,
   contentStyle,
   footerStyle,
@@ -305,7 +307,9 @@ export const BottomSheet = forwardRef<
               background: '#fff',
               ...footerStyle,
             }}
-          />
+          >
+            {footer}
+          </div>
         </div>
       </motion.div>
     </div>

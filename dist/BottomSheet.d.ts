@@ -10,6 +10,7 @@ export declare const BottomSheet: React.ForwardRefExoticComponent<Omit<BottomShe
     headerClassName?: string;
     contentClassName?: string;
     footerClassName?: string;
+    footer?: React.ReactNode;
 }, "ref"> & React.RefAttributes<{
     snapToPoint: (idx: number) => void;
 }>>;

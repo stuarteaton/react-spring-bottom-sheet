@@ -15,7 +15,7 @@ function getClosestSnapPointIndex(snapPoints, value, windowHeight) {
     });
     return closestIndex;
 }
-export const BottomSheet = forwardRef(({ open = false, duration = 250, snapPoints = [50], initialSnapPoint = 0, blocking = true, canSwipeClose = true, canBackdropClose = true, headerClassName = '', contentClassName = '', footerClassName = '', headerStyle, contentStyle, footerStyle, children, sheetStyle, sheetClassName, onClose, }, ref) => {
+export const BottomSheet = forwardRef(({ open = false, duration = 250, snapPoints = [50], initialSnapPoint = 0, blocking = true, canSwipeClose = true, canBackdropClose = true, headerClassName = '', contentClassName = '', footerClassName = '', footer, headerStyle, contentStyle, footerStyle, children, sheetStyle, sheetClassName, onClose, }, ref) => {
     const [isVisible, setIsVisible] = useState(open);
     // isAnimating removed
     const [currentSnap, setCurrentSnap] = useState(() => initialSnapPoint);
@@ -204,5 +204,5 @@ export const BottomSheet = forwardRef(({ open = false, duration = 250, snapPoint
                                 bottom: 0,
                                 background: '#fff',
                                 ...footerStyle,
-                            } })] }) })] }));
+                            }, children: footer })] }) })] }));
 });

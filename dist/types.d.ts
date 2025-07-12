@@ -13,6 +13,7 @@ export interface BottomSheetProps {
     headerClassName?: string;
     contentClassName?: string;
     footerClassName?: string;
+    footer?: React.ReactNode;
     children?: React.ReactNode;
     onClose?: () => void;
     ref?: ForwardedRef<{
